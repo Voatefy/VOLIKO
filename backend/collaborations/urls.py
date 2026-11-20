@@ -8,6 +8,10 @@ from .views import (
     DecisionCandidatureAPIView,
     DocumentCandidatureUploadAPIView,
     DocumentCandidatureDownloadAPIView,
+    AutorisationAccesListCreateAPIView,
+    AutorisationsRecuesAPIView,
+    DecisionAutorisationAPIView,
+    RevoquerAutorisationAPIView,
 )
 
 urlpatterns = [
@@ -40,5 +44,26 @@ urlpatterns = [
         "documents/<int:pk>/telecharger/",
         DocumentCandidatureDownloadAPIView.as_view(),
         name="candidature-document-download"
+    ),
+
+    path(
+        "autorisations/",
+        AutorisationAccesListCreateAPIView.as_view(),
+        name="autorisation-list-create"
+    ),
+    path(
+        "autorisations/recues/",
+        AutorisationsRecuesAPIView.as_view(),
+        name="autorisations-recues"
+    ),
+    path(
+        "autorisations/<int:pk>/decision/",
+        DecisionAutorisationAPIView.as_view(),
+        name="autorisation-decision"
+    ),
+    path(
+        "autorisations/<int:pk>/revoquer/",
+        RevoquerAutorisationAPIView.as_view(),
+        name="autorisation-revoquer"
     ),
 ]

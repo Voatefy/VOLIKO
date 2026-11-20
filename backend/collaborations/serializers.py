@@ -1,10 +1,14 @@
-from rest_framework import serializers
-
 from .models import (
     CandidatureAgronome,
     DocumentCandidature,
     StatutCandidature,
+    AutorisationAcces,
+    PorteeAcces,
+    StatutDemandeAcces,
+    StatutAutorisation,
 )
+
+from rest_framework import serializers
 
 class CandidatureAgronomeSerializer(serializers.ModelSerializer):
 
@@ -167,3 +171,112 @@ class DocumentCandidatureReadSerializer(serializers.ModelSerializer):
             "date_ajout",
         ]
         read_only_fields = fields
+
+
+
+class AutorisationAccesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AutorisationAcces
+        fields = [
+            "id",
+            "agriculteur",
+            "agronome",
+            "portee",
+            "parcelle",
+            "types_donnees",
+            "date_demande",
+            "statut_demande",
+            "date_decision",
+            "statut_autorisation",
+            "date_autorisation",
+            "date_revocation",
+            "motif_demande",
+        ]
+
+        read_only_fields = [
+            "id",
+            "agronome",
+            "date_demande",
+            "statut_demande",
+            "date_decision",
+            "statut_autorisation",
+            "date_autorisation",
+            "date_revocation",
+        ]
+
+    def validate(self, attrs):
+
+        utilisateur = self.context["request"].user
+
+        if utilisateur.role != "AGRONOME":
+            raise serializers.ValidationError(
+                "Seul un agronome peut demander une autorisation."
+            )
+
+        agriculteur = attrs.get(
+            "agriculteur",
+            self.instance.agriculteur if self.instance else None
+        )
+
+        if not agriculteur or agriculteur.role != "AGRICULTEUR":
+            raise serializers.ValidationError({
+                "agriculteur": "L'utilisateur sélectionné doit être un agriculteur."
+            })
+
+        portee = attrs.get(
+            "portee",
+            self.instance.portee if self.instance else None
+        )
+
+        parcelle = attrs.get(
+            "parcelle",
+            self.instance.parcelle if self.instance else None
+        )
+
+        if portee == PorteeAcces.PARCELLE:
+
+            if not parcelle:
+                raise serializers.ValidationError({
+                    "parcelle": "Une parcelle doit être sélectionnée."
+                })
+
+            if parcelle.proprietaire_id != agriculteur.id:
+                raise serializers.ValidationError({
+                    "parcelle": "Cette parcelle n'appartient pas à cet agriculteur."
+                })
+
+            if parcelle.date_suppression is not None:
+                raise serializers.ValidationError({
+                    "parcelle": "Cette parcelle est supprimée."
+                })
+
+        elif portee == PorteeAcces.TOUTES:
+
+            if parcelle:
+                raise serializers.ValidationError({
+                    "parcelle": "La portée TOUTES ne doit pas cibler une parcelle."
+                })
+
+        return attrs
+
+    def create(self, validated_data):
+
+        validated_data["agronome"] = self.context["request"].user
+
+        return super().create(validated_data)
+
+
+class DecisionAutorisationSerializer(serializers.Serializer):
+
+    statut = serializers.ChoiceField(
+        choices=[
+            StatutDemandeAcces.ACCEPTEE,
+            StatutDemandeAcces.REFUSEE,
+        ]
+    )
+
+    motif_decision = serializers.CharField(
+        required=False,
+        allow_blank=True
+    )

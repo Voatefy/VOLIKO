@@ -22,6 +22,8 @@ from .serializers import (
     DecisionCandidatureSerializer,
     DocumentCandidatureUploadSerializer,
     DocumentCandidatureReadSerializer,
+    AutorisationAccesSerializer,
+    DecisionAutorisationSerializer,
 )
 
 from notifications.services import (
@@ -33,6 +35,10 @@ from .models import (
     CandidatureAgronome,
     DocumentCandidature,
     StatutCandidature,
+    AutorisationAcces,
+    PorteeAcces,
+    StatutDemandeAcces,
+    StatutAutorisation,
 )
 
 logger = logging.getLogger(__name__)
@@ -342,4 +348,192 @@ class DocumentCandidatureDownloadAPIView(APIView):
             fichier.open("rb"),
             as_attachment=True,
             filename=document.nom_fichier
+        )
+
+
+
+# ==================================================
+# AUTORISATIONS D'ACCÈS AUX PARCELLES
+# ==================================================
+
+class AutorisationAccesListCreateAPIView(generics.ListCreateAPIView):
+
+    serializer_class = AutorisationAccesSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+
+        utilisateur = self.request.user
+
+        if utilisateur.role == "AGRONOME":
+            return AutorisationAcces.objects.filter(
+                agronome=utilisateur
+            ).select_related(
+                "agriculteur",
+                "agronome",
+                "parcelle"
+            ).order_by("-date_demande")
+
+        return AutorisationAcces.objects.none()
+
+    def perform_create(self, serializer):
+
+        utilisateur = self.request.user
+
+        if utilisateur.role != "AGRONOME":
+            raise PermissionDenied(
+                "Seul un agronome peut demander une autorisation."
+            )
+
+        agriculteur = self.request.data.get("agriculteur")
+        portee = self.request.data.get("portee")
+        parcelle = self.request.data.get("parcelle")
+
+        demandes = AutorisationAcces.objects.filter(
+            agronome=utilisateur,
+            agriculteur_id=agriculteur,
+            portee=portee,
+        )
+
+        if portee == PorteeAcces.PARCELLE:
+            demandes = demandes.filter(parcelle_id=parcelle)
+        else:
+            demandes = demandes.filter(parcelle__isnull=True)
+
+        demande_en_attente = demandes.filter(
+            statut_demande=StatutDemandeAcces.EN_ATTENTE
+        ).exists()
+
+        autorisation_active = demandes.filter(
+            statut_autorisation=StatutAutorisation.ACTIVE
+        ).exists()
+
+        if demande_en_attente or autorisation_active:
+            raise ValidationError(
+                "Une demande en attente ou une autorisation active existe déjà."
+            )
+
+        serializer.save(
+            agronome=utilisateur,
+            statut_demande=StatutDemandeAcces.EN_ATTENTE,
+            statut_autorisation=StatutAutorisation.INACTIVE
+        )
+
+
+class AutorisationsRecuesAPIView(generics.ListAPIView):
+
+    serializer_class = AutorisationAccesSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+
+        utilisateur = self.request.user
+
+        if utilisateur.role != "AGRICULTEUR":
+            raise PermissionDenied(
+                "Seul un agriculteur peut consulter les demandes reçues."
+            )
+
+        return AutorisationAcces.objects.filter(
+            agriculteur=utilisateur
+        ).select_related(
+            "agriculteur",
+            "agronome",
+            "parcelle"
+        ).order_by("-date_demande")
+
+
+
+
+class DecisionAutorisationAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+
+        if request.user.role != "AGRICULTEUR":
+            raise PermissionDenied(
+                "Seul un agriculteur peut décider d'une demande."
+            )
+
+        serializer = DecisionAutorisationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+
+            autorisation = get_object_or_404(
+                AutorisationAcces.objects.select_for_update(),
+                pk=pk,
+                agriculteur=request.user
+            )
+
+            if autorisation.statut_demande != StatutDemandeAcces.EN_ATTENTE:
+                raise ValidationError(
+                    "Cette demande a déjà été traitée."
+                )
+
+            maintenant = timezone.now()
+
+            autorisation.statut_demande = serializer.validated_data["statut"]
+            autorisation.date_decision = maintenant
+
+            if autorisation.statut_demande == StatutDemandeAcces.ACCEPTEE:
+
+                autorisation.statut_autorisation = StatutAutorisation.ACTIVE
+                autorisation.date_autorisation = maintenant
+
+            else:
+
+                autorisation.statut_autorisation = StatutAutorisation.INACTIVE
+                autorisation.date_autorisation = None
+
+            autorisation.save(update_fields=[
+                "statut_demande",
+                "date_decision",
+                "statut_autorisation",
+                "date_autorisation",
+            ])
+
+        return Response(
+            AutorisationAccesSerializer(autorisation).data,
+            status=status.HTTP_200_OK
+        )
+
+
+
+class RevoquerAutorisationAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+
+        if request.user.role != "AGRICULTEUR":
+            raise PermissionDenied(
+                "Seul un agriculteur peut révoquer une autorisation."
+            )
+
+        with transaction.atomic():
+
+            autorisation = get_object_or_404(
+                AutorisationAcces.objects.select_for_update(),
+                pk=pk,
+                agriculteur=request.user
+            )
+
+            if autorisation.statut_autorisation != StatutAutorisation.ACTIVE:
+                raise ValidationError(
+                    "Seule une autorisation active peut être révoquée."
+                )
+
+            autorisation.statut_autorisation = StatutAutorisation.REVOQUEE
+            autorisation.date_revocation = timezone.now()
+
+            autorisation.save(update_fields=[
+                "statut_autorisation",
+                "date_revocation",
+            ])
+
+        return Response(
+            AutorisationAccesSerializer(autorisation).data,
+            status=status.HTTP_200_OK
         )

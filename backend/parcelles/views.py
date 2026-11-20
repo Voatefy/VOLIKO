@@ -5,14 +5,16 @@ from django.db import transaction
 from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
 
-from .models import Parcelle
-from .serializers import ParcelleSerializer
 from collaborations.models import (
     AutorisationAcces,
     PorteeAcces,
     StatutAutorisation,
 )
 
+
+from .models import Parcelle, CultureParcelle
+from .serializers import ParcelleSerializer, CultureParcelleSerializer
+from utilisateurs.models import Utilisateur
 
 class ParcellePermission(permissions.BasePermission):
     """
@@ -157,3 +159,175 @@ class ParcelleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
                 statut_autorisation=StatutAutorisation.REVOQUEE,
                 date_revocation=date_suppression
             )
+
+
+
+
+class CultureParcellePermission(permissions.BasePermission):
+    """
+    L'agriculteur propriétaire possède les droits CRUD.
+    L'agronome autorisé dispose uniquement de la lecture.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        utilisateur = request.user
+        parcelle = obj.parcelle
+
+        if parcelle.proprietaire_id == utilisateur.id:
+            return True
+
+        if (
+            utilisateur.role != Utilisateur.Role.AGRONOME
+            or request.method not in permissions.SAFE_METHODS
+        ):
+            return False
+
+        return AutorisationAcces.objects.filter(
+            agriculteur_id=parcelle.proprietaire_id,
+            agronome=utilisateur,
+            statut_demande="ACCEPTEE",
+            statut_autorisation=StatutAutorisation.ACTIVE,
+        ).filter(
+            Q(portee=PorteeAcces.PARCELLE, parcelle=parcelle)
+            | Q(portee=PorteeAcces.TOUTES, parcelle__isnull=True)
+        ).exists()
+
+
+class CultureParcelleListCreateAPIView(generics.ListCreateAPIView):
+
+    serializer_class = CultureParcelleSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        utilisateur = self.request.user
+
+        parcelles = Parcelle.objects.filter(
+            date_suppression__isnull=True
+        )
+
+        if utilisateur.role == Utilisateur.Role.AGRICULTEUR:
+            parcelles = parcelles.filter(
+                proprietaire=utilisateur
+            )
+
+        elif utilisateur.role == Utilisateur.Role.AGRONOME:
+            autorisations = AutorisationAcces.objects.filter(
+                agronome=utilisateur,
+                statut_demande="ACCEPTEE",
+                statut_autorisation=StatutAutorisation.ACTIVE,
+            )
+
+            parcelles_individuelles = autorisations.filter(
+                portee=PorteeAcces.PARCELLE
+            ).values_list("parcelle_id", flat=True)
+
+            agriculteurs_toutes = autorisations.filter(
+                portee=PorteeAcces.TOUTES,
+                parcelle__isnull=True
+            ).values_list("agriculteur_id", flat=True)
+
+            parcelles = parcelles.filter(
+                Q(id__in=parcelles_individuelles)
+                | Q(proprietaire_id__in=agriculteurs_toutes)
+            )
+
+        else:
+            return CultureParcelle.objects.none()
+
+        return CultureParcelle.objects.filter(
+            parcelle__in=parcelles
+        ).select_related("parcelle", "culture")
+
+    def perform_create(self, serializer):
+        utilisateur = self.request.user
+
+        if utilisateur.role != Utilisateur.Role.AGRICULTEUR:
+            raise PermissionDenied(
+                "Seul un agriculteur peut associer une culture."
+            )
+
+        parcelle = serializer.validated_data["parcelle"]
+
+        if parcelle.proprietaire_id != utilisateur.id:
+            raise PermissionDenied(
+                "Vous ne pouvez pas associer une culture à cette parcelle."
+            )
+
+        serializer.save()
+
+
+class CultureParcelleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+
+    serializer_class = CultureParcelleSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        CultureParcellePermission,
+    ]
+
+    def get_queryset(self):
+        utilisateur = self.request.user
+
+        parcelles = Parcelle.objects.filter(
+            date_suppression__isnull=True
+        )
+
+        if utilisateur.role == Utilisateur.Role.AGRICULTEUR:
+            parcelles = parcelles.filter(
+                proprietaire=utilisateur
+            )
+
+        elif utilisateur.role == Utilisateur.Role.AGRONOME:
+            autorisations = AutorisationAcces.objects.filter(
+                agronome=utilisateur,
+                statut_demande="ACCEPTEE",
+                statut_autorisation=StatutAutorisation.ACTIVE,
+            )
+
+            parcelles_individuelles = autorisations.filter(
+                portee=PorteeAcces.PARCELLE
+            ).values_list("parcelle_id", flat=True)
+
+            agriculteurs_toutes = autorisations.filter(
+                portee=PorteeAcces.TOUTES,
+                parcelle__isnull=True
+            ).values_list("agriculteur_id", flat=True)
+
+            parcelles = parcelles.filter(
+                Q(id__in=parcelles_individuelles)
+                | Q(proprietaire_id__in=agriculteurs_toutes)
+            )
+
+        else:
+            return CultureParcelle.objects.none()
+
+        return CultureParcelle.objects.filter(
+            parcelle__in=parcelles
+        ).select_related("parcelle", "culture")
+
+        
+
+    def perform_update(self, serializer):
+        if self.request.user.role != Utilisateur.Role.AGRICULTEUR:
+            raise PermissionDenied(
+                "Seul l'agriculteur propriétaire peut modifier cette culture."
+            )
+
+        parcelle = serializer.validated_data.get(
+            "parcelle",
+            serializer.instance.parcelle
+        )
+
+        if parcelle.proprietaire_id != self.request.user.id:
+            raise PermissionDenied(
+                "Vous ne pouvez pas associer une culture à cette parcelle."
+            )
+
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user.role != Utilisateur.Role.AGRICULTEUR:
+            raise PermissionDenied(
+                "Seul l'agriculteur propriétaire peut supprimer cette association."
+            )
+
+        instance.delete()
