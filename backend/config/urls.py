@@ -1,11 +1,8 @@
 from django.contrib import admin
 from django.urls import include, path
 
-
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from utilisateurs.views import ConnexionEmailAPIView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -16,7 +13,7 @@ urlpatterns = [
     # Authentification JWT
     path(
         "api/token/",
-        TokenObtainPairView.as_view(),
+        ConnexionEmailAPIView.as_view(),
         name="token_obtain_pair"
     ),
     path(

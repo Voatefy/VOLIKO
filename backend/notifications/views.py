@@ -5,8 +5,11 @@ from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from .models import Notification
-from .serializers import NotificationSerializer
+from .models import Notification, PreferenceNotification
+from .serializers import (
+    NotificationSerializer,
+    PreferenceNotificationSerializer,
+)
 
 
 class NotificationListAPIView(generics.ListAPIView):
@@ -45,4 +48,26 @@ class NotificationMarquerLueAPIView(APIView):
 
         return Response(
             NotificationSerializer(notification).data
+        )
+
+class PreferenceNotificationListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = PreferenceNotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return PreferenceNotification.objects.filter(
+            utilisateur=self.request.user
+        ).order_by("categorie_notification", "canal")
+
+    def perform_create(self, serializer):
+        serializer.save(utilisateur=self.request.user)
+
+
+class PreferenceNotificationDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = PreferenceNotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return PreferenceNotification.objects.filter(
+            utilisateur=self.request.user
         )

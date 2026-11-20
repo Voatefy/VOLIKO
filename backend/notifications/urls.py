@@ -1,9 +1,12 @@
+
 from django.urls import path
 
 from .views import (
     NotificationListAPIView,
     NotificationDetailAPIView,
     NotificationMarquerLueAPIView,
+    PreferenceNotificationListCreateAPIView,
+    PreferenceNotificationDetailAPIView,
 )
 
 urlpatterns = [
@@ -11,6 +14,11 @@ urlpatterns = [
         "",
         NotificationListAPIView.as_view(),
         name="notification-list"
+    ),
+    path(
+        "preferences/",
+        PreferenceNotificationListCreateAPIView.as_view(),
+        name="preference-notification-list-create"
     ),
     path(
         "<int:pk>/",
@@ -21,5 +29,11 @@ urlpatterns = [
         "<int:pk>/lue/",
         NotificationMarquerLueAPIView.as_view(),
         name="notification-marquer-lue"
+    ),
+
+    path(
+        "preferences/<int:pk>/",
+        PreferenceNotificationDetailAPIView.as_view(),
+        name="preference-notification-detail",
     ),
 ]

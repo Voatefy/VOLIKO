@@ -1,3 +1,6 @@
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
@@ -46,3 +49,30 @@ class ProfilUtilisateurSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ["id", "username", "role"]
+
+class ConnexionEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        email = attrs["email"]
+        password = attrs["password"]
+
+        utilisateur = Utilisateur.objects.filter(
+            email__iexact=email
+        ).first()
+
+        if not utilisateur or not utilisateur.check_password(password):
+            raise AuthenticationFailed("Identifiants invalides.")
+
+        if not utilisateur.is_active:
+            raise AuthenticationFailed(
+                "Votre compte est désactivé. Veuillez contacter l'administrateur."
+            )
+
+        refresh = RefreshToken.for_user(utilisateur)
+
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }

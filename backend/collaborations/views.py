@@ -1,3 +1,5 @@
+import logging
+
 from django.utils import timezone
 
 from django.http import FileResponse
@@ -12,6 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
+from notifications.models import TypeNotification
 
 from .serializers import (
     CandidatureAgronomeSerializer,
@@ -21,7 +24,10 @@ from .serializers import (
     DocumentCandidatureReadSerializer,
 )
 
-from notifications.models import Notification, TypeNotification
+from notifications.services import (
+    envoyer_notification_application,
+    envoyer_notification_email,
+)
 
 from .models import (
     CandidatureAgronome,
@@ -29,6 +35,7 @@ from .models import (
     StatutCandidature,
 )
 
+logger = logging.getLogger(__name__)
 
 class CandidatureAgronomeListCreateAPIView(generics.ListCreateAPIView):
 
@@ -123,6 +130,18 @@ class DecisionCandidatureAPIView(APIView):
         serializer = DecisionCandidatureSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        # ===
+        nouveau_statut = serializer.validated_data["statut"]
+
+        contenu_email = (
+            "Votre candidature d'agronome a été acceptée. Félicitations !"
+            if nouveau_statut == StatutCandidature.ACCEPTEE
+            else (
+                "Votre candidature d'agronome a été refusée.\n"
+                f"Motif : {serializer.validated_data.get('motif_decision', '')}"
+            )
+        )
+        # ===
         with transaction.atomic():
 
             candidature = get_object_or_404(
@@ -155,9 +174,9 @@ class DecisionCandidatureAPIView(APIView):
                 candidature.candidat.role = "AGRONOME"
                 candidature.candidat.save(update_fields=["role"])
 
-            Notification.objects.create(
+            envoyer_notification_application(
                 destinataire=candidature.candidat,
-                type_notification=TypeNotification.CANDIDATURE,
+                categorie=TypeNotification.CANDIDATURE,
                 contenu=(
                     "Votre candidature d'agronome a été acceptée."
                     if nouveau_statut == StatutCandidature.ACCEPTEE
@@ -165,8 +184,21 @@ class DecisionCandidatureAPIView(APIView):
                         "Votre candidature d'agronome a été refusée. "
                         f"Motif : {candidature.motif_decision}"
                     )
-                )
+                ),
             )
+        # ===
+        try:
+            envoyer_notification_email(
+                destinataire=candidature.candidat,
+                categorie=TypeNotification.CANDIDATURE,
+                sujet="Décision concernant votre candidature VOLIKO",
+                contenu=contenu_email,
+            )
+        except Exception:
+            logger.exception(
+                "Échec de l'envoi de l'e-mail de décision de candidature."
+            )
+        # ===
 
         return Response(
             CandidatureAgronomeSerializer(candidature).data,
