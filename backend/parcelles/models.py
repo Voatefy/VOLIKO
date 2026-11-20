@@ -110,5 +110,21 @@ class CultureParcelle(models.Model):
         blank=True
     )
 
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            parcelle_db = Parcelle.objects.only(
+                "date_suppression"
+            ).get(pk=self.parcelle.pk)
+
+            if parcelle_db.date_suppression is not None:
+                from django.core.exceptions import ValidationError
+
+                raise ValidationError(
+                    "Impossible d'associer une culture "
+                    "à une parcelle supprimée."
+                )
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.culture} - {self.parcelle}"

@@ -281,6 +281,16 @@ class AutorisationAcces(models.Model):
                 "parcelle": "Cette parcelle n'appartient pas à cet agriculteur."
             })
 
+        
+        if (
+            self.portee == PorteeAcces.PARCELLE
+            and self.parcelle_id
+            and self.parcelle.date_suppression is not None
+        ):
+            raise ValidationError({
+                "parcelle": "Impossible d'autoriser l'accès à une parcelle supprimée."
+            })
+        
     def __str__(self):
         return f"Accès - {self.agronome} - {self.portee}"
 

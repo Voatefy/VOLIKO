@@ -24,4 +24,7 @@ urlpatterns = [
         name="token_refresh"
     ),
     path("api/parcelles/", include("parcelles.urls")),
+
+        # API collaborations
+    path("api/collaborations/", include("collaborations.urls")),
 ]
