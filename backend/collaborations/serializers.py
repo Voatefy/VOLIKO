@@ -184,7 +184,6 @@ class AutorisationAccesSerializer(serializers.ModelSerializer):
             "agronome",
             "portee",
             "parcelle",
-            "types_donnees",
             "date_demande",
             "statut_demande",
             "date_decision",

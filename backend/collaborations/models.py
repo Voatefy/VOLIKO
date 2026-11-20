@@ -223,7 +223,6 @@ class AutorisationAcces(models.Model):
         blank=True
     )
 
-    types_donnees = models.JSONField(default=list)
 
     date_demande = models.DateTimeField(auto_now_add=True)
 

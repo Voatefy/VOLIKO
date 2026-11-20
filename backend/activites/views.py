@@ -20,8 +20,9 @@ from .serializers import (
 
 def parcelles_accessibles(utilisateur):
     """
-    Retourne les parcelles appartenant à l'agriculteur
-    ou accessibles en lecture à l'agronome.
+    Retourne les parcelles accessibles :
+    - Agriculteur : ses parcelles, y compris supprimées (historique).
+    - Agronome : uniquement les parcelles actives autorisées.
     """
 
     if utilisateur.role == Utilisateur.Role.AGRICULTEUR:
@@ -36,7 +37,8 @@ def parcelles_accessibles(utilisateur):
         )
 
         parcelles_individuelles = autorisations.filter(
-            portee=PorteeAcces.PARCELLE
+            portee=PorteeAcces.PARCELLE,
+            parcelle__date_suppression__isnull=True
         ).values_list("parcelle_id", flat=True)
 
         agriculteurs_toutes = autorisations.filter(
@@ -46,10 +48,21 @@ def parcelles_accessibles(utilisateur):
 
         return (
             Q(parcelle_id__in=parcelles_individuelles)
-            | Q(parcelle__proprietaire_id__in=agriculteurs_toutes)
+            | Q(
+                parcelle__proprietaire_id__in=agriculteurs_toutes,
+                parcelle__date_suppression__isnull=True
+            )
         )
 
     return Q(pk__in=[])
+
+def verifier_parcelle_modifiable(instance):
+    if instance.parcelle.date_suppression is not None:
+        raise PermissionDenied(
+            "Impossible de modifier ou supprimer "
+            "une activité liée à une parcelle supprimée."
+        )
+
 
 
 class ActivitePlanifieeListCreateAPIView(generics.ListCreateAPIView):
@@ -89,6 +102,7 @@ class ActivitePlanifieeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
                 "Seul l'agriculteur propriétaire peut modifier cette activité."
             )
 
+        verifier_parcelle_modifiable(self.get_object())
         serializer.save()
 
     def perform_destroy(self, instance):
@@ -98,6 +112,7 @@ class ActivitePlanifieeDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
                 "Seul l'agriculteur propriétaire peut supprimer cette activité."
             )
 
+        verifier_parcelle_modifiable(instance)
         instance.delete()
 
 
@@ -138,6 +153,7 @@ class ActiviteAgricoleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
                 "Seul l'agriculteur propriétaire peut modifier cette activité."
             )
 
+        verifier_parcelle_modifiable(self.get_object())
         serializer.save()
 
     def perform_destroy(self, instance):
@@ -147,4 +163,5 @@ class ActiviteAgricoleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
                 "Seul l'agriculteur propriétaire peut supprimer cette activité."
             )
 
+        verifier_parcelle_modifiable(instance)
         instance.delete()
