@@ -1,0 +1,22 @@
+
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    container_name: voliko_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: voliko_db
+      POSTGRES_USER: voliko_user
+      POSTGRES_PASSWORD: voliko_dev_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - voliko_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voliko_user -d voliko_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  voliko_postgres_data:
