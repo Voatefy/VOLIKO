@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import include, path
 
+
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -27,4 +28,7 @@ urlpatterns = [
 
         # API collaborations
     path("api/collaborations/", include("collaborations.urls")),
+
+    # API notifications
+    path("api/notifications/", include("notifications.urls")),
 ]

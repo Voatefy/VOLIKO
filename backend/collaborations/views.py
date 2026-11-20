@@ -1,23 +1,31 @@
 from django.utils import timezone
 
+from django.http import FileResponse
+from django.core.exceptions import ObjectDoesNotExist
+
 from rest_framework import generics, permissions
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializers import (
     CandidatureAgronomeSerializer,
+    CandidatureAgronomeAdminSerializer,
     DecisionCandidatureSerializer,
+    DocumentCandidatureUploadSerializer,
+    DocumentCandidatureReadSerializer,
 )
 
 from notifications.models import Notification, TypeNotification
 
 from .models import (
     CandidatureAgronome,
+    DocumentCandidature,
     StatutCandidature,
 )
 
@@ -63,6 +71,44 @@ class CandidatureAgronomeDetailAPIView(generics.RetrieveUpdateAPIView):
             candidat=self.request.user
         )
 
+
+class CandidatureAgronomeAdminListAPIView(generics.ListAPIView):
+
+    serializer_class = CandidatureAgronomeAdminSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+
+        if self.request.user.role != "ADMINISTRATEUR":
+            raise PermissionDenied(
+                "Seul un administrateur peut consulter les candidatures."
+            )
+
+        queryset = CandidatureAgronome.objects.filter(
+            date_candidature__isnull=False
+        ).select_related(
+            "candidat",
+            "administrateur"
+        )
+
+        statut = self.request.query_params.get("statut")
+
+        if statut:
+            statuts_valides = [
+                choix[0] for choix in StatutCandidature.choices
+            ]
+
+            if statut not in statuts_valides:
+
+                raise ValidationError({
+                    "statut": "Statut de candidature invalide."
+                })
+
+            queryset = queryset.filter(statut=statut)
+
+        return queryset.order_by("-date_candidature")
+
+
 class DecisionCandidatureAPIView(APIView):
 
     permission_classes = [permissions.IsAuthenticated]
@@ -84,12 +130,14 @@ class DecisionCandidatureAPIView(APIView):
                 pk=pk
             )
 
-            if candidature.statut in [
-                StatutCandidature.ACCEPTEE,
-                StatutCandidature.REJETEE,
+            # hehehe
+            if candidature.statut not in [
+                StatutCandidature.SOUMISE,
+                StatutCandidature.EN_EXAMEN,
             ]:
                 raise PermissionDenied(
-                    "Cette candidature a déjà été traitée."
+                    "Cette candidature ne peut pas être traitée "
+                    "dans son état actuel."
                 )
 
             nouveau_statut = serializer.validated_data["statut"]
@@ -123,4 +171,143 @@ class DecisionCandidatureAPIView(APIView):
         return Response(
             CandidatureAgronomeSerializer(candidature).data,
             status=status.HTTP_200_OK
+        )
+
+
+
+class DocumentCandidatureUploadAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request, candidature_id):
+
+        candidature = get_object_or_404(
+            CandidatureAgronome,
+            pk=candidature_id
+        )
+
+        est_candidat = candidature.candidat_id == request.user.id
+        est_admin = request.user.role == "ADMINISTRATEUR"
+
+        if not est_candidat and not est_admin:
+            raise PermissionDenied(
+                "Vous n'êtes pas autorisé à consulter ces documents."
+            )
+
+        if est_admin and candidature.date_candidature is None:
+            raise PermissionDenied(
+                "Cette candidature n'a pas encore été soumise."
+            )
+
+        documents = candidature.documents.all().order_by("-date_ajout")
+
+        return Response(
+            DocumentCandidatureReadSerializer(
+                documents,
+                many=True
+            ).data,
+            status=status.HTTP_200_OK
+        )
+
+    def post(self, request, candidature_id):
+
+        candidature = get_object_or_404(
+            CandidatureAgronome,
+            pk=candidature_id,
+            candidat=request.user
+        )
+
+        if candidature.statut in [
+            StatutCandidature.ACCEPTEE,
+            StatutCandidature.REJETEE,
+        ]:
+            raise PermissionDenied(
+                "Cette candidature ne peut plus recevoir de documents."
+            )
+
+        serializer = DocumentCandidatureUploadSerializer(
+            data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+
+        document = serializer.save(candidature=candidature)
+
+        return Response(
+            DocumentCandidatureUploadSerializer(document).data,
+            status=status.HTTP_201_CREATED
+        )
+
+
+# Documents
+class DocumentCandidatureListAPIView(generics.ListAPIView):
+
+    serializer_class = DocumentCandidatureReadSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        candidature = get_object_or_404(
+            CandidatureAgronome,
+            pk=self.kwargs["candidature_id"]
+        )
+
+        if (
+            candidature.candidat_id != self.request.user.id
+            and self.request.user.role != "ADMINISTRATEUR"
+        ):
+            raise PermissionDenied(
+                "Vous n'êtes pas autorisé à consulter ces documents."
+            )
+
+        if (
+            self.request.user.role == "ADMINISTRATEUR"
+            and candidature.date_candidature is None
+        ):
+            raise PermissionDenied(
+                "Cette candidature n'a pas encore été soumise."
+            )
+
+        return candidature.documents.all().order_by("-date_ajout")
+
+
+class DocumentCandidatureDownloadAPIView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+
+        document = get_object_or_404(
+            DocumentCandidature.objects.select_related(
+                "candidature",
+                "candidature__candidat"
+            ),
+            pk=pk
+        )
+
+        candidature = document.candidature
+
+        est_candidat = candidature.candidat_id == request.user.id
+        est_admin = request.user.role == "ADMINISTRATEUR"
+
+        if not est_candidat and not est_admin:
+            raise PermissionDenied(
+                "Vous n'êtes pas autorisé à télécharger ce document."
+            )
+
+        if est_admin and candidature.date_candidature is None:
+            raise PermissionDenied(
+                "Cette candidature n'a pas encore été soumise."
+            )
+
+        fichier = document.chemin_stockage
+
+        if not fichier or not fichier.storage.exists(fichier.name):
+            raise ValidationError(
+                "Le fichier demandé est introuvable."
+            )
+
+        return FileResponse(
+            fichier.open("rb"),
+            as_attachment=True,
+            filename=document.nom_fichier
         )
