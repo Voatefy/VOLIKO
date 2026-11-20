@@ -10,6 +10,17 @@ from parcelles.models import Parcelle
 # 1. CANDIDATURE D'UN AGRONOME
 # ==================================================
 
+def verifier_parcelle_active(parcelle):
+    parcelle_db = Parcelle.objects.only(
+        "date_suppression"
+    ).get(pk=parcelle.pk)
+
+    if parcelle_db.date_suppression is not None:
+        raise ValidationError(
+            "Impossible de créer une demande ou une recommandation "
+            "pour une parcelle supprimée."
+        )
+
 class StatutCandidature(models.TextChoices):
     BROUILLON = "BROUILLON", "Brouillon"
     SOUMISE = "SOUMISE", "Soumise"
@@ -155,6 +166,11 @@ class DemandeRecommandation(models.Model):
         null=True,
         blank=True
     )
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            verifier_parcelle_active(self.parcelle)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Demande - {self.parcelle} - {self.statut}"
@@ -326,6 +342,11 @@ class RecommandationAgricole(models.Model):
         choices=StatutRecommandation.choices,
         default=StatutRecommandation.BROUILLON
     )
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            verifier_parcelle_active(self.parcelle)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.titre} - {self.parcelle}"

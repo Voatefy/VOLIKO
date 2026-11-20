@@ -1,6 +1,18 @@
 from django.db import models
 from parcelles.models import Parcelle
+from django.core.exceptions import ValidationError
 
+
+def verifier_parcelle_active(parcelle):
+    parcelle_db = Parcelle.objects.only(
+        "date_suppression"
+    ).get(pk=parcelle.pk)
+
+    if parcelle_db.date_suppression is not None:
+        raise ValidationError(
+            "Impossible de créer une activité "
+            "pour une parcelle supprimée."
+        )
 
 class TypeActivite(models.TextChoices):
     SEMIS = "SEMIS", "Semis"
@@ -44,6 +56,11 @@ class ActivitePlanifiee(models.Model):
         blank=True
     )
 
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            verifier_parcelle_active(self.parcelle)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.get_type_activite_display()} - {self.parcelle}"
 
@@ -80,6 +97,11 @@ class ActiviteAgricole(models.Model):
         null=True,
         blank=True
     )
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            verifier_parcelle_active(self.parcelle)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.get_type_activite_display()} - {self.parcelle}"

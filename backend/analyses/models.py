@@ -2,7 +2,19 @@
 from django.db import models
 from django.db.models import Q
 from parcelles.models import Parcelle
+from django.core.exceptions import ValidationError
 
+
+def verifier_parcelle_active(parcelle):
+    parcelle_db = Parcelle.objects.only(
+        "date_suppression"
+    ).get(pk=parcelle.pk)
+
+    if parcelle_db.date_suppression is not None:
+        raise ValidationError(
+            "Impossible de créer une nouvelle donnée "
+            "pour une parcelle supprimée."
+        )
 
 class ObservationNDVI(models.Model):
     parcelle = models.ForeignKey(
@@ -50,6 +62,12 @@ class ObservationNDVI(models.Model):
                 name="ndvi_couverture_entre_0_et_100"
             )
         ]
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            verifier_parcelle_active(self.parcelle)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"NDVI - {self.parcelle} - {self.date_acquisition_image}"
@@ -109,6 +127,12 @@ class DonneeMeteo(models.Model):
             )
         ]
 
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            verifier_parcelle_active(self.parcelle)
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Météo - {self.parcelle} - {self.date_meteo}"
 
@@ -146,6 +170,12 @@ class AlerteAgricole(models.Model):
     contenu_alerte = models.TextField()
     date_alerte = models.DateTimeField()
 
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            verifier_parcelle_active(self.parcelle)
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.type_alerte} - {self.parcelle}"
 
@@ -170,6 +200,12 @@ class ConseilAgricole(models.Model):
     )
 
     date_generation = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            verifier_parcelle_active(self.parcelle)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Conseil - {self.parcelle} - {self.source_conseil}"
