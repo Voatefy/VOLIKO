@@ -28,4 +28,6 @@ urlpatterns = [
 
     # API notifications
     path("api/notifications/", include("notifications.urls")),
+    # API activités agricoles
+    path("api/activites/", include("activites.urls")),
 ]
