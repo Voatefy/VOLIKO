@@ -198,19 +198,21 @@ class CultureParcelleListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = CultureParcelleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    
+    
     def get_queryset(self):
         utilisateur = self.request.user
 
-        parcelles = Parcelle.objects.filter(
-            date_suppression__isnull=True
-        )
-
         if utilisateur.role == Utilisateur.Role.AGRICULTEUR:
-            parcelles = parcelles.filter(
+            parcelles = Parcelle.objects.filter(
                 proprietaire=utilisateur
             )
 
         elif utilisateur.role == Utilisateur.Role.AGRONOME:
+            parcelles_actives = Parcelle.objects.filter(
+                date_suppression__isnull=True
+            )
+
             autorisations = AutorisationAcces.objects.filter(
                 agronome=utilisateur,
                 statut_demande="ACCEPTEE",
@@ -226,7 +228,7 @@ class CultureParcelleListCreateAPIView(generics.ListCreateAPIView):
                 parcelle__isnull=True
             ).values_list("agriculteur_id", flat=True)
 
-            parcelles = parcelles.filter(
+            parcelles = parcelles_actives.filter(
                 Q(id__in=parcelles_individuelles)
                 | Q(proprietaire_id__in=agriculteurs_toutes)
             )
@@ -237,6 +239,8 @@ class CultureParcelleListCreateAPIView(generics.ListCreateAPIView):
         return CultureParcelle.objects.filter(
             parcelle__in=parcelles
         ).select_related("parcelle", "culture")
+
+
 
     def perform_create(self, serializer):
         utilisateur = self.request.user
@@ -264,19 +268,20 @@ class CultureParcelleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         CultureParcellePermission,
     ]
 
+    # ========
     def get_queryset(self):
         utilisateur = self.request.user
 
-        parcelles = Parcelle.objects.filter(
-            date_suppression__isnull=True
-        )
-
         if utilisateur.role == Utilisateur.Role.AGRICULTEUR:
-            parcelles = parcelles.filter(
+            parcelles = Parcelle.objects.filter(
                 proprietaire=utilisateur
             )
 
         elif utilisateur.role == Utilisateur.Role.AGRONOME:
+            parcelles_actives = Parcelle.objects.filter(
+                date_suppression__isnull=True
+            )
+
             autorisations = AutorisationAcces.objects.filter(
                 agronome=utilisateur,
                 statut_demande="ACCEPTEE",
@@ -292,7 +297,7 @@ class CultureParcelleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
                 parcelle__isnull=True
             ).values_list("agriculteur_id", flat=True)
 
-            parcelles = parcelles.filter(
+            parcelles = parcelles_actives.filter(
                 Q(id__in=parcelles_individuelles)
                 | Q(proprietaire_id__in=agriculteurs_toutes)
             )
@@ -303,10 +308,17 @@ class CultureParcelleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         return CultureParcelle.objects.filter(
             parcelle__in=parcelles
         ).select_related("parcelle", "culture")
+    # ========
 
-        
 
     def perform_update(self, serializer):
+        instance = serializer.instance
+
+        if instance.parcelle.date_suppression is not None:
+            raise PermissionDenied(
+                "Impossible de modifier une culture historique."
+            )
+
         if self.request.user.role != Utilisateur.Role.AGRICULTEUR:
             raise PermissionDenied(
                 "Seul l'agriculteur propriétaire peut modifier cette culture."
@@ -314,7 +326,7 @@ class CultureParcelleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
         parcelle = serializer.validated_data.get(
             "parcelle",
-            serializer.instance.parcelle
+            instance.parcelle
         )
 
         if parcelle.proprietaire_id != self.request.user.id:
@@ -325,6 +337,11 @@ class CultureParcelleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         serializer.save()
 
     def perform_destroy(self, instance):
+        if instance.parcelle.date_suppression is not None:
+            raise PermissionDenied(
+                "Impossible de supprimer une culture historique."
+            )
+
         if self.request.user.role != Utilisateur.Role.AGRICULTEUR:
             raise PermissionDenied(
                 "Seul l'agriculteur propriétaire peut supprimer cette association."
