@@ -1031,9 +1031,26 @@ a {
     gap: 13px;
   }
 
-  .login-link {
-    font-size: 11px;
-  }
+  /* LOGIN BUTTON */
+.login-link {
+  min-height: 46px;
+  padding: 0 23px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 30px;
+  background: transparent;
+  color: white;
+  transition: background .25s ease, border-color .25s ease,
+              color .25s ease;
+}
+
+.login-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: white;
+  color: white;
+}
 
   .header-cta {
     min-height: 39px;
@@ -1275,6 +1292,41 @@ a {
 
 .main-nav {
   gap: 30px;
+}
+
+/* NAVIGATION HOVER */
+.main-nav a {
+  position: relative;
+  padding: 10px 0;
+  transition: color .25s ease;
+}
+
+.main-nav a:hover {
+  color: #F4A36F;
+}
+
+.main-nav a::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--orange);
+  transition: width .25s ease;
+}
+
+.main-nav a:hover::after {
+  width: 100%;
+}
+
+/* LANGUAGE BUTTON HOVER */
+.language-button {
+  transition: color .25s ease;
+}
+
+.language-button:hover {
+  color: #F4A36F;
 }
 
 .main-nav a,
@@ -1591,4 +1643,198 @@ a {
   .register-page {
     padding: 35px 18px;
   }
+}
+
+
+/* ========================================
+   VOLIKO — NEW HERO & NAVIGATION
+======================================== */
+
+.site-header {
+  position: absolute;
+  top: 24px;
+  left: 1.5%;
+  width: 97%;
+  height: 70px;
+  padding: 0 26px;
+  z-index: 20;
+  border-radius: 50px;
+  background: rgba(35, 45, 43, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 5px 25px rgba(0,0,0,.12);
+}
+
+.site-logo {
+  color: white;
+  font-size: 25px;
+}
+
+.site-logo span {
+  color: var(--orange);
+}
+
+.main-nav,
+.header-actions {
+  gap: 28px;
+}
+
+.main-nav a,
+.login-link,
+.language-button {
+  color: white;
+  font-size: 14px;
+}
+
+.main-nav a:hover,
+.login-link:hover,
+.language-button:hover {
+  color: #F4A36F;
+}
+
+.header-cta {
+  min-height: 46px;
+  border-radius: 30px;
+  padding: 0 22px;
+}
+
+.hero-section {
+  min-height: 760px;
+  padding: 160px 8% 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  grid-template-columns: none;
+  gap: 0;
+  background: transparent;
+}
+
+.hero-section::before {
+  background-image: url("./assets/accueil_BG.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-section::after {
+  background: linear-gradient(
+    rgba(16, 41, 29, .48),
+    rgba(16, 41, 29, .62)
+  );
+}
+
+.hero-copy {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-copy > .eyebrow {
+  display: block;
+  margin-bottom: 24px;
+  color: rgba(255,255,255,.88);
+  font-size: 12px;
+  letter-spacing: 1.8px;
+}
+
+.hero-copy h1 {
+  margin: 0 auto 25px;
+  color: white;
+  font-size: clamp(42px, 5.2vw, 72px);
+  line-height: 1.12;
+  letter-spacing: -2.8px;
+  font-weight: 600;
+}
+
+.hero-copy h1 em {
+  color: #F4A36F;
+  font-style: normal;
+}
+
+.hero-description {
+  max-width: 720px;
+  margin: 0 auto 32px;
+  color: rgba(255,255,255,.9);
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.hero-actions {
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+}
+
+.hero-actions .primary-button {
+  border-radius: 30px;
+}
+
+.secondary-link {
+  color: white;
+}
+
+.secondary-link:hover {
+  color: #F4A36F;
+}
+
+@media (max-width: 760px) {
+  .site-header {
+    top: 12px;
+    left: 3%;
+    width: 94%;
+    padding: 0 18px;
+  }
+
+  .main-nav {
+    display: none;
+  }
+
+  .header-actions {
+    gap: 12px;
+  }
+
+  .header-cta {
+    padding: 0 14px;
+    font-size: 11px;
+  }
+
+  .hero-section {
+    min-height: 680px;
+    padding: 130px 22px 70px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(38px, 9vw, 54px);
+    letter-spacing: -1.5px;
+  }
+
+  .hero-description {
+    font-size: 15px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+}
+
+/* HERO TYPOGRAPHY */
+.hero-copy h1,
+.hero-copy h1 em {
+  font-family: inherit;
+  font-style: normal;
+  font-size: inherit;
+}
+
+.hero-copy h1 {
+  font-size: clamp(38px, 4.5vw, 62px);
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -1.8px;
+}
+
+.hero-copy h1 em {
+  font-weight: 650;
 }

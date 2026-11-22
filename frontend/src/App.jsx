@@ -103,63 +103,6 @@ function LoginPage({ onBack }) {
   );
 }
 
-function DashboardPreview() {
-  return (
-    <div className="dashboard-preview" aria-label="Illustration d'un tableau de bord agricole">
-      <div className="preview-topbar">
-        <div className="preview-brand"><span /> VOLIKO</div>
-        <div className="preview-avatar">A</div>
-      </div>
-
-      <div className="preview-content">
-        <div className="preview-heading">
-          <div>
-            <span className="preview-label">VOTRE EXPLOITATION</span>
-            <h3>Vue d'ensemble</h3>
-          </div>
-          <span className="preview-period">Cette saison⌄</span>
-        </div>
-
-        <div className="preview-stats">
-          <div className="preview-stat">
-            <span>Parcelles</span>
-            <strong>08</strong>
-            <small>Enregistrées</small>
-          </div>
-          <div className="preview-stat">
-            <span>Superficie totale</span>
-            <strong>12,5 <small>ha</small></strong>
-            <small>Surface suivie</small>
-          </div>
-          <div className="preview-stat">
-            <span>État général</span>
-            <strong className="healthy">Stable</strong>
-            <small>Dernière observation</small>
-          </div>
-        </div>
-
-        <div className="preview-lower">
-          <div className="preview-map">
-            <div className="map-grid" />
-            <div className="field field-one" />
-            <div className="field field-two" />
-            <div className="field field-three" />
-            <span className="map-pin">●</span>
-            <span className="map-caption">VOS PARCELLES</span>
-          </div>
-          <div className="preview-activity">
-            <span className="preview-label">ACTIVITÉ RÉCENTE</span>
-            <div><i /> Données actualisées <small>Aujourd'hui</small></div>
-            <div><i /> Observation disponible <small>Hier</small></div>
-            <div><i /> Parcelle enregistrée <small>Cette semaine</small></div>
-          </div>
-        </div>
-      </div>
-      <div className="preview-glow" />
-    </div>
-  );
-}
-
 function HomePage({ onLogin }) {
   return (
     <div className="public-site">
@@ -167,8 +110,8 @@ function HomePage({ onLogin }) {
         <a className="site-logo" href="#accueil">VOLIKO<span>.</span></a>
 
         <nav className="main-nav">
-          <a href="#fonctionnalites">Fonctionnalités</a>
-          <a href="#approche">Notre approche</a>
+          <a href="#fonctionnalites">Produits</a>
+          <a href="#approche">Solutions</a>
           <a href="#apropos">À propos</a>
         </nav>
 
@@ -178,50 +121,35 @@ function HomePage({ onLogin }) {
           </button>
           <button className="login-link" onClick={onLogin}>Connexion</button>
           <button className="primary-button header-cta" onClick={onLogin}>
-            Accéder à VOLIKO <span>↗</span>
+            Accéder à VOLIKO <span>→</span>
           </button>
         </div>
       </header>
 
       <main>
         <section className="hero-section" id="accueil">
-          <div className="hero-background-shape" />
           <div className="hero-copy">
-            <p className="eyebrow"><span /> LA TECHNOLOGIE AU SERVICE DE L'AGRICULTURE</p>
+            <p className="eyebrow">LA TECHNOLOGIE AU SERVICE DE L'AGRICULTURE</p>
+
             <h1>
-              Cultiver avec<br />
-              <em>une meilleure</em><br />
-              vision.
+              Une meilleure vision<br />
+              <em>pour vos décisions agricoles.</em>
             </h1>
+
             <p className="hero-description">
-              Comprenez vos parcelles, suivez l'évolution de vos cultures
-              et prenez des décisions agricoles mieux informées grâce à VOLIKO.
+              Suivez vos cultures, comprenez leur évolution et prenez
+              des décisions agricoles mieux informées grâce à VOLIKO.
             </p>
+
             <div className="hero-actions">
               <a className="primary-button" href="#fonctionnalites">
-                Découvrir VOLIKO <span>↗</span>
+                Découvrir VOLIKO <span>→</span>
               </a>
               <a className="secondary-link" href="#approche">
-                Explorer notre approche <span>↓</span>
+                Découvrir nos solutions <span>↓</span>
               </a>
             </div>
-            <div className="hero-note">
-              <span className="note-line" />
-              <span>Observer. Comprendre. Décider.</span>
-            </div>
           </div>
-
-          <div className="hero-visual">
-            <div className="visual-orbit orbit-one" />
-            <div className="visual-orbit orbit-two" />
-            <DashboardPreview />
-            <div className="floating-note">
-              <span className="floating-icon">⌖</span>
-              <div><strong>Vos parcelles</strong><small>Un suivi centralisé</small></div>
-            </div>
-            <div className="visual-caption">L'AGRICULTURE, ÉCLAIRÉE PAR LA DONNÉE.</div>
-          </div>
-          <div className="hero-index">01 — 04</div>
         </section>
 
         <section className="intro-section" id="apropos">
