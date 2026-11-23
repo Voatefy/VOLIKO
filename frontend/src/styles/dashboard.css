@@ -1,0 +1,253 @@
+/* =========================================
+   VOLIKO — DASHBOARD LAYOUT
+========================================= */
+
+.dashboard-layout {
+  min-height: 100vh;
+  background: #F8F8F3;
+}
+
+/* SIDEBAR */
+
+.dashboard-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  width: 260px;
+  padding: 28px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  background: #10291D;
+  color: #FFFFFF;
+}
+
+.dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 12px 35px;
+  color: #FFFFFF;
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.8px;
+}
+
+.dashboard-brand img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.sidebar-section-label {
+  padding: 0 12px;
+  margin-bottom: 14px;
+  color: #91A697;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sidebar-link {
+  min-height: 45px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  border-radius: 7px;
+  color: #C5D1C8;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background .2s ease, color .2s ease;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, .07);
+  color: #FFFFFF;
+}
+
+.sidebar-link.active {
+  background: #193D2B;
+  color: #FFFFFF;
+  box-shadow: inset 3px 0 #F07832;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px;
+}
+
+.sidebar-avatar,
+.header-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #E8EFE5;
+  color: #193D2B;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sidebar-user-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-user-info strong {
+  overflow: hidden;
+  color: #FFFFFF;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-user-info span {
+  color: #91A697;
+  font-size: 10px;
+}
+
+.sidebar-logout {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 6px;
+  background: transparent;
+  color: #D5DED7;
+  font-size: 12px;
+  text-align: left;
+  transition: background .2s ease;
+}
+
+.sidebar-logout:hover {
+  background: rgba(255, 255, 255, .08);
+}
+
+/* MAIN CONTENT */
+
+.dashboard-main {
+  min-height: 100vh;
+  margin-left: 260px;
+}
+
+.dashboard-header {
+  min-height: 100px;
+  padding: 20px 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #DCE4D9;
+  background: #FFFFFF;
+}
+
+.header-eyebrow {
+  color: #89938A;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.dashboard-header h1 {
+  margin: 7px 0 0;
+  color: #193D2B;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -.6px;
+}
+
+.header-profile {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  color: #26332B;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dashboard-content {
+  padding: 35px 38px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .dashboard-sidebar {
+    width: 220px;
+  }
+
+  .dashboard-main {
+    margin-left: 220px;
+  }
+
+  .dashboard-content {
+    padding: 25px 22px;
+  }
+}
+
+@media (max-width: 650px) {
+  .dashboard-sidebar {
+    position: relative;
+    width: 100%;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .dashboard-brand {
+    padding-bottom: 18px;
+  }
+
+  .sidebar-section-label,
+  .sidebar-bottom {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+
+  .sidebar-link {
+    flex-shrink: 0;
+    min-height: 38px;
+    font-size: 11px;
+  }
+
+  .dashboard-main {
+    margin-left: 0;
+  }
+
+  .dashboard-header {
+    min-height: 80px;
+    padding: 15px 18px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 19px;
+  }
+
+  .header-profile > span {
+    display: none;
+  }
+
+  .dashboard-content {
+    padding: 22px 16px;
+  }
+}
