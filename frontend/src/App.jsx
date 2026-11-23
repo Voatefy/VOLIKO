@@ -5,33 +5,83 @@ import "./App.css";
 const features = [
   {
     number: "01",
-    icon: "⌖",
+    icon: "parcel",
     title: "Gestion des parcelles",
     description:
       "Enregistrez vos parcelles, visualisez leurs limites et centralisez leurs informations agricoles.",
   },
   {
     number: "02",
-    icon: "◉",
+    icon: "satellite",
     title: "Suivi satellitaire",
     description:
       "Consultez les indicateurs de végétation pour mieux comprendre l'évolution de vos cultures.",
   },
   {
     number: "03",
-    icon: "☼",
+    icon: "weather",
     title: "Données météorologiques",
     description:
       "Accédez aux informations météorologiques utiles au suivi de vos activités agricoles.",
   },
   {
     number: "04",
-    icon: "⌁",
+    icon: "alert",
     title: "Alertes et conseils",
     description:
       "Soyez informé des anomalies détectées et consultez des recommandations adaptées.",
   },
 ];
+
+
+function FeatureIcon({ name }) {
+  const common = {
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+  };
+
+  return (
+    <svg viewBox="0 0 48 48" width="38" height="38"
+      aria-hidden="true" {...common}>
+      {name === "parcel" && (
+        <>
+          <path d="M10 13 31 9 39 16 36 37 15 40 9 32Z" />
+          <path d="m10 13 5 19 21 5M31 9l5 28" />
+          <circle cx="10" cy="13" r="2" fill="#F07832" stroke="none" />
+          <circle cx="39" cy="16" r="2" fill="#F07832" stroke="none" />
+        </>
+      )}
+
+      {name === "satellite" && (
+        <>
+          <path d="m18 30 12-12M14 34l5-5M29 19l5-5" />
+          <path d="m25 11 12 12-6 6-12-12Z" />
+          <path d="M9 18a21 21 0 0 1 21-9M39 30a21 21 0 0 1-21 9"
+            stroke="#F07832" />
+        </>
+      )}
+
+      {name === "weather" && (
+        <>
+          <circle cx="24" cy="20" r="8" />
+          <path d="M24 5v4M24 31v4M9 20h4M35 20h4M13.4 9.4l2.8 2.8M31.8 27.8l2.8 2.8M34.6 9.4l-2.8 2.8M16.2 27.8l-2.8 2.8" />
+          <path d="M14 39h20" stroke="#F07832" />
+        </>
+      )}
+
+      {name === "alert" && (
+        <>
+          <path d="M12 32h24l-3-4V19a9 9 0 0 0-18 0v9Z" />
+          <path d="M20 37a4 4 0 0 0 8 0" stroke="#F07832" />
+          <path d="M24 14v8M24 26v.5" />
+        </>
+      )}
+    </svg>
+  );
+}
 
 function LoginPage({ onBack }) {
   const { login } = useAuth();
@@ -153,13 +203,13 @@ function HomePage({ onLogin }) {
         </section>
 
         <section className="intro-section" id="apropos">
-          <p className="eyebrow">UNE NOUVELLE FAÇON DE SUIVRE SES CULTURES</p>
           <div className="intro-content">
             <h2>
-              L'information agricole<br />
-              au bon endroit,<br />
-              <em>au bon moment.</em>
+              Pourquoi mieux<br />
+              comprendre votre<br />
+              <em>exploitation agricole ?</em>
             </h2>
+
             <div className="intro-text">
               <p>
                 Les décisions agricoles reposent sur une bonne compréhension
@@ -176,12 +226,11 @@ function HomePage({ onLogin }) {
         <section className="features-section" id="fonctionnalites">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">CE QUE VOLIKO VOUS APPORTE</p>
-              <h2>Une vision plus claire<br />de votre exploitation.</h2>
+              <h2>Tout ce qu'il faut pour mieux comprendre vos cultures.</h2>
             </div>
             <p>
-              Des outils complémentaires pour centraliser les informations
-              et accompagner vos décisions agricoles.
+              VOLIKO centralise les informations de vos parcelles, les indicateurs
+              satellitaires et les données météorologiques pour éclairer vos décisions agricoles.
             </p>
           </div>
 
@@ -189,8 +238,9 @@ function HomePage({ onLogin }) {
             {features.map((feature) => (
               <article className="feature-card" key={feature.number}>
                 <div className="feature-top">
-                  <span className="feature-icon">{feature.icon}</span>
-                  <span className="feature-number">{feature.number}</span>
+                  <span className="feature-icon">
+                    <FeatureIcon name={feature.icon} />
+                  </span>
                 </div>
                 <h3>{feature.title}</h3>
                 <p>{feature.description}</p>
@@ -202,11 +252,11 @@ function HomePage({ onLogin }) {
 
         <section className="approach-section" id="approche">
           <div className="approach-heading">
-            <p className="eyebrow">UNE DÉMARCHE SIMPLE</p>
-            <h2>De l'observation<br />à la décision.</h2>
+            <h2>Comment VOLIKO vous accompagne dans vos décisions ?</h2>
             <p>
-              VOLIKO vous accompagne dans le suivi de vos parcelles,
-              tout en laissant à l'agriculteur la responsabilité de ses décisions.
+              De l'enregistrement des parcelles à la consultation des recommandations,
+              VOLIKO rassemble les informations utiles. L'agriculteur conserve
+              la responsabilité de ses décisions.
             </p>
           </div>
           <div className="steps-list">
@@ -230,10 +280,12 @@ function HomePage({ onLogin }) {
         </section>
 
         <section className="closing-section">
-          <p className="eyebrow">VOTRE AGRICULTURE MÉRITE UNE MEILLEURE VISIBILITÉ</p>
-          <h2>Et si vous preniez<br /><em>une longueur d'avance ?</em></h2>
+          <h2>
+            Prêt à prendre des décisions<br />
+            <em>agricoles mieux éclairées ?</em>
+          </h2>
           <button className="primary-button" onClick={onLogin}>
-            Accéder à VOLIKO <span>↗</span>
+            Accéder à VOLIKO <span>→</span>
           </button>
         </section>
       </main>

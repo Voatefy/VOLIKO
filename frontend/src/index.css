@@ -1,16 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
-  font-family: Manrope, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  /* font-family: "Manrope", sans-serif; */
+  font-family: "Manrope", sans-serif;
   color: #26332B;
   background: #F8F8F3;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-optical-sizing: auto;
-  scroll-behavior: smooth;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: "Manrope", sans-serif;
 }
 
 * {
