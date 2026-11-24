@@ -1,17 +1,21 @@
 
 import { useEffect, useMemo } from "react";
+
 import {
   MapContainer,
   TileLayer,
   GeoJSON,
   useMap,
   LayersControl,
+  LayerGroup,
 } from "react-leaflet";
+
 
 import "leaflet/dist/leaflet.css";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import "@geoman-io/leaflet-geoman-free";
 const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+const maptilerKey = import.meta.env.VITE_MAPTILER_KEY;
 
 function MapDrawControl({ onGeometryCreated }) {
   const map = useMap();
@@ -71,21 +75,47 @@ function ParcelleMap({ parcelles, onGeometryCreated }) {
         scrollWheelZoom
         style={{ height: "500px", width: "100%" }}
       >
+
+
         <LayersControl position="topleft">
-          <LayersControl.BaseLayer checked name="Satellite">
-            <TileLayer
-              attribution="Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics"
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            />
+          <LayersControl.BaseLayer name="Esri Satellite + rues">
+            <LayerGroup>
+              <TileLayer
+                attribution="Tiles © Esri, Maxar, Earthstar Geographics"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+
+              <TileLayer
+                attribution="© Esri, HERE, Garmin, © OpenStreetMap contributors"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+
+              <TileLayer
+                attribution="© Esri, HERE, Garmin"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            </LayerGroup>
           </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer checked name="Mapbox Satellite">
+
+          <LayersControl.BaseLayer checked name="Mapbox Satellite + rues">
             <TileLayer
               attribution='© <a href="https://www.mapbox.com/about/maps/">Mapbox</a>'
-              url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=${mapboxToken}`}
+              url={`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}?access_token=${mapboxToken}`}
               maxZoom={20}
             />
           </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Carte classique">
+            <TileLayer
+              attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
         </LayersControl>
+
 
         <GeoJSON data={geojson} />
 
