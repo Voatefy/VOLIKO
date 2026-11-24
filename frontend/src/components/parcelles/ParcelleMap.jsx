@@ -11,6 +11,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import "@geoman-io/leaflet-geoman-free";
+const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 function MapDrawControl({ onGeometryCreated }) {
   const map = useMap();
@@ -77,11 +78,11 @@ function ParcelleMap({ parcelles, onGeometryCreated }) {
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
             />
           </LayersControl.BaseLayer>
-
-          <LayersControl.BaseLayer name="Carte classique">
+          <LayersControl.BaseLayer checked name="Mapbox Satellite">
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='© <a href="https://www.mapbox.com/about/maps/">Mapbox</a>'
+              url={`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=${mapboxToken}`}
+              maxZoom={20}
             />
           </LayersControl.BaseLayer>
         </LayersControl>
