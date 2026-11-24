@@ -6,6 +6,7 @@ from .views import (
     ParcelleDetailAPIView,
     CultureParcelleListCreateAPIView,
     CultureParcelleDetailAPIView,
+    CultureDisponibleListAPIView,
 )
 
 urlpatterns = [
@@ -28,5 +29,10 @@ urlpatterns = [
         "cultures/<int:pk>/",
         CultureParcelleDetailAPIView.as_view(),
         name="culture-parcelle-detail"
+    ),
+    path(
+        "cultures-disponibles/",
+        CultureDisponibleListAPIView.as_view(),
+        name="culture-disponible-list"
     ),
 ]

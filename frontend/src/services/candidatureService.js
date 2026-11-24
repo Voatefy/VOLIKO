@@ -17,3 +17,9 @@ export function traiterCandidature(id, statut, motif_decision = "") {
 export function getDocumentUrl(id) {
   return `${import.meta.env.VITE_API_URL}/collaborations/documents/${id}/telecharger/`;
 }
+
+export function getDocumentsCandidature(candidatureId) {
+  return apiRequest(
+    `/collaborations/candidatures/${candidatureId}/documents/`
+  );
+}

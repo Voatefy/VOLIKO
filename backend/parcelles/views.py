@@ -12,9 +12,17 @@ from collaborations.models import (
 )
 
 
-from .models import Parcelle, CultureParcelle
-from .serializers import ParcelleSerializer, CultureParcelleSerializer
+from .models import Parcelle, Culture, CultureParcelle
+from .serializers import (
+    ParcelleSerializer,
+    CultureSerializer,
+    CultureParcelleSerializer,
+)
 from utilisateurs.models import Utilisateur
+class CultureDisponibleListAPIView(generics.ListAPIView):
+    serializer_class = CultureSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Culture.objects.all().order_by("nom_culture")
 
 class ParcellePermission(permissions.BasePermission):
     """

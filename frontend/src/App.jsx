@@ -6,6 +6,7 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import LoginPage from "./pages/auth/LoginPage";
 import HomePage from "./pages/home/HomePage";
 import RoleLanding from "./components/common/RoleLanding";
+import ParcellesPage from "./pages/agriculteur/ParcellesPage";
 import "./styles/dashboard.css";
 import "./App.css";
 
@@ -42,6 +43,10 @@ function App() {
         <Route
           path="/agriculteur"
           element={<RoleLanding title="Espace agriculteur" />}
+        />
+        <Route
+          path="/agriculteur/parcelles"
+          element={<ParcellesPage />}
         />
       </Route>
 
