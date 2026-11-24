@@ -1,0 +1,142 @@
+.parcelles-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.parcelles-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.parcelles-heading span {
+  color: #6b8e63;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.parcelles-heading h2 {
+  margin: 6px 0;
+}
+
+.parcelles-heading p {
+  color: #777;
+  margin: 0;
+}
+
+.parcelles-map-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.parcelle-map {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.recherche-lieu {
+  display: flex;
+  gap: 10px;
+  max-width: 650px;
+}
+
+.recherche-lieu input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #d5ddd3;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.recherche-lieu input:focus {
+  border-color: #548b50;
+  box-shadow: 0 0 0 3px rgba(84, 139, 80, 0.12);
+}
+
+.recherche-lieu button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #397a43;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recherche-lieu button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resultats-recherche {
+  display: flex;
+  flex-direction: column;
+  max-width: 650px;
+  background: white;
+  border: 1px solid #e1e7df;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.resultats-recherche button {
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid #edf0ec;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.resultats-recherche button:hover {
+  background: #f2f7f1;
+}
+
+.resultats-recherche button:last-child {
+  border-bottom: none;
+}
+
+.parcelles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.parcelles-list article {
+  padding: 16px;
+  border: 1px solid #e5e9e4;
+  border-radius: 10px;
+  background: white;
+}
+
+.parcelles-list h4 {
+  margin: 0 0 8px;
+}
+
+.parcelles-list p {
+  margin: 0;
+  color: #777;
+}
+
+@media (max-width: 600px) {
+  .parcelles-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .recherche-lieu {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .recherche-lieu button {
+    width: 100%;
+  }
+}

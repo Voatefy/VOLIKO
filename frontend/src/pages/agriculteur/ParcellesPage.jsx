@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import ParcelleMap from "../../components/parcelles/ParcelleMap";
 import { getParcelles } from "../../services/parcelleService";
+import { rechercherLieu } from "../../services/geocodingService";
+import "./ParcellesPage.css";
 
 function ParcellesPage() {
   const [parcelles, setParcelles] = useState({
@@ -11,6 +13,12 @@ function ParcellesPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+const [query, setQuery] = useState("");
+const [resultats, setResultats] = useState([]);
+const [rechercheLoading, setRechercheLoading] = useState(false);
+const [erreurRecherche, setErreurRecherche] = useState("");
+const [locationRecherche, setLocationRecherche] = useState(null);
 
   useEffect(() => {
     async function chargerParcelles() {
@@ -26,6 +34,35 @@ function ParcellesPage() {
 
     chargerParcelles();
   }, []);
+
+
+
+  async function handleRecherche(event) {
+    event.preventDefault();
+
+    if (!query.trim()) return;
+
+    setRechercheLoading(true);
+    setErreurRecherche("");
+    setResultats([]);
+
+    try {
+      const lieux = await rechercherLieu(query.trim());
+      setResultats(lieux);
+
+      if (lieux.length === 0) {
+        setErreurRecherche("Aucun lieu trouvé à Madagascar.");
+      }
+    } catch (err) {
+      setErreurRecherche(err.message);
+    } finally {
+      setRechercheLoading(false);
+    }
+  }
+
+
+
+
 
   return (
     <DashboardLayout>
@@ -49,7 +86,51 @@ function ParcellesPage() {
         {!loading && !error && (
           <>
             <div className="parcelles-map-container">
-              <ParcelleMap parcelles={parcelles} />
+              <form onSubmit={handleRecherche} className="recherche-lieu">
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Rechercher une région, commune, fokontany, village..."
+                />
+
+                <button type="submit" disabled={rechercheLoading}>
+                  {rechercheLoading ? "Recherche..." : "Rechercher"}
+                </button>
+              </form>
+
+              {erreurRecherche && (
+                <p className="error-message">{erreurRecherche}</p>
+              )}
+
+              {resultats.length > 0 && (
+                <div className="resultats-recherche">
+                  {resultats.map((lieu) => (
+                    <button
+                      type="button"
+                      key={lieu.id}
+                      onClick={() => {
+                        const nomLieu =
+                          lieu.properties.full_address ||
+                          lieu.properties.name;
+
+                        setQuery(nomLieu);
+                        setLocationRecherche(lieu.geometry.coordinates);
+                        setResultats([]);
+                        setErreurRecherche("");
+                      }}
+                    >
+                      {lieu.properties.full_address ||
+                        lieu.properties.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <ParcelleMap
+                parcelles={parcelles}
+                locationRecherche={locationRecherche}
+              />
             </div>
 
             <div className="parcelles-list">

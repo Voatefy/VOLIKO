@@ -15,7 +15,25 @@ import "leaflet/dist/leaflet.css";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import "@geoman-io/leaflet-geoman-free";
 const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
-const maptilerKey = import.meta.env.VITE_MAPTILER_KEY;
+
+
+function MapNavigation({ location }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!location) return;
+
+    const [longitude, latitude] = location;
+
+    map.flyTo([latitude, longitude], 16, {
+      duration: 1.5,
+    });
+  }, [map, location]);
+
+  return null;
+}
+
+
 
 function MapDrawControl({ onGeometryCreated }) {
   const map = useMap();
@@ -61,20 +79,25 @@ function MapDrawControl({ onGeometryCreated }) {
   return null;
 }
 
-function ParcelleMap({ parcelles, onGeometryCreated }) {
+function ParcelleMap({
+  parcelles,
+  onGeometryCreated,
+  locationRecherche,
+}) {
   const geojson = useMemo(
     () => parcelles || { type: "FeatureCollection", features: [] },
     [parcelles]
   );
 
   return (
-    <div className="parcelle-map">
-      <MapContainer
+      <div className="parcelle-map">
+        <MapContainer
         center={[-18.8792, 47.5079]}
         zoom={6}
         scrollWheelZoom
         style={{ height: "500px", width: "100%" }}
       >
+      <MapNavigation location={locationRecherche} />
 
 
         <LayersControl position="topleft">
