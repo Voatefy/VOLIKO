@@ -2,7 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import ParcelleMap from "../../components/parcelles/ParcelleMap";
-import { getParcelles } from "../../services/parcelleService";
+import {
+  getParcelles,
+  creerParcelle,
+} from "../../services/parcelleService";
+
 import { rechercherLieu } from "../../services/geocodingService";
 import "./ParcellesPage.css";
 
@@ -11,6 +15,12 @@ function ParcellesPage() {
     type: "FeatureCollection",
     features: [],
   });
+  const [parcelleSelectionnee, setParcelleSelectionnee] = useState(null);
+  const [geometrieEnCours, setGeometrieEnCours] = useState(null);
+  const [coucheEnCours, setCoucheEnCours] = useState(null);
+  const [nomParcelle, setNomParcelle] = useState("");
+  const [enregistrement, setEnregistrement] = useState(false);
+  const [erreurCreation, setErreurCreation] = useState("");
   const selectionEnCours = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -72,6 +82,22 @@ const [locationRecherche, setLocationRecherche] = useState(null);
     return () => clearTimeout(timeout);
   }, [query]);
 
+
+  function handleGeometryCreated(geometrie, couche) {
+    setGeometrieEnCours(geometrie);
+    setCoucheEnCours(couche);
+    setErreurCreation("");
+  }
+
+  function handleAnnulerCreation() {
+    coucheEnCours?.remove();
+
+    setGeometrieEnCours(null);
+    setCoucheEnCours(null);
+    setNomParcelle("");
+    setErreurCreation("");
+  }
+
   function handleEffacer() {
     setQuery("");
     setResultats([]);
@@ -79,6 +105,40 @@ const [locationRecherche, setLocationRecherche] = useState(null);
     setLocationRecherche(null);
   }
 
+  async function handleCreerParcelle(e) {
+    e.preventDefault();
+
+    if (!nomParcelle.trim() || !geometrieEnCours) {
+      setErreurCreation("Veuillez saisir un nom et dessiner une parcelle.");
+      return;
+    }
+
+    setEnregistrement(true);
+    setErreurCreation("");
+
+    try {
+      await creerParcelle({
+        nom_parcelle: nomParcelle.trim(),
+        geometrie: geometrieEnCours,
+      });
+
+      
+      const data = await getParcelles();
+      setParcelles(data);
+
+      coucheEnCours?.remove();
+
+      setGeometrieEnCours(null);
+      setCoucheEnCours(null);
+      setNomParcelle("");
+      setErreurCreation("");
+
+    } catch (err) {
+      setErreurCreation(err.message);
+    } finally {
+      setEnregistrement(false);
+    }
+  }
 
   return (
     <DashboardLayout>
@@ -161,7 +221,49 @@ const [locationRecherche, setLocationRecherche] = useState(null);
               <ParcelleMap
                 parcelles={parcelles}
                 locationRecherche={locationRecherche}
+                onGeometryCreated={handleGeometryCreated}
               />
+
+
+
+              {geometrieEnCours && (
+                <form className="creation-parcelle-form" onSubmit={handleCreerParcelle}>
+                  <h3>Nouvelle parcelle</h3>
+
+                  <label htmlFor="nom-parcelle">Nom de la parcelle</label>
+
+                  <input
+                    id="nom-parcelle"
+                    type="text"
+                    value={nomParcelle}
+                    onChange={(e) => setNomParcelle(e.target.value)}
+                    placeholder="Ex. Parcelle Nord"
+                    maxLength={150}
+                    required
+                  />
+
+                  {erreurCreation && (
+                    <p className="error-message">{erreurCreation}</p>
+                  )}
+
+                  <div className="creation-parcelle-actions">
+                    <button
+                      type="button"
+                      onClick={handleAnnulerCreation}
+                      disabled={enregistrement}
+                    >
+                      Annuler
+                    </button>
+
+                    <button type="submit" disabled={enregistrement}>
+                      {enregistrement ? "Enregistrement..." : "Enregistrer la parcelle"}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+
+
             </div>
 
             <div className="parcelles-list">

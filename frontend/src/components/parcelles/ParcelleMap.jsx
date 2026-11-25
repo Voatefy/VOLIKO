@@ -71,7 +71,8 @@ function MapDrawControl({ onGeometryCreated }) {
             }
           : geometry;
 
-      onGeometryCreated?.(multiPolygon);
+
+          onGeometryCreated?.(multiPolygon, event.layer);
     };
 
     map.on("pm:create", handleCreate);
@@ -117,6 +118,8 @@ function RechercheMarker({ location }) {
     </>
   );
 }
+
+
 
 function ParcelleMap({
   parcelles,

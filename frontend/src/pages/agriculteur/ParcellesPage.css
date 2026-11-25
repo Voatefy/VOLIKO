@@ -337,3 +337,72 @@
     flex-direction: column;
   }
 }
+
+
+/* validtion parcelle  */
+/* Formulaire de création de parcelle */
+.creation-parcelle-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid #e8eee7;
+  border-radius: 14px;
+}
+
+.creation-parcelle-form h3 {
+  margin: 0;
+  color: #263b2b;
+  font-size: 18px;
+}
+
+.creation-parcelle-form label {
+  color: #344638;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.creation-parcelle-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dce5da;
+  border-radius: 8px;
+  outline: none;
+  color: #344638;
+}
+
+.creation-parcelle-form input:focus {
+  border-color: #f47721;
+  box-shadow: 0 0 0 3px rgba(244, 119, 33, 0.10);
+}
+
+.creation-parcelle-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.creation-parcelle-actions button {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.creation-parcelle-actions button:first-child {
+  background: #edf2ec;
+  color: #456b4b;
+}
+
+.creation-parcelle-actions button:last-child {
+  background: #456b4b;
+  color: #ffffff;
+}
+
+.creation-parcelle-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
