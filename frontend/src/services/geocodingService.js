@@ -11,7 +11,7 @@ export async function rechercherLieu(query) {
     country: "MG",
     language: "fr",
     limit: "6",
-    autocomplete: "false",
+    autocomplete: "true",
     types: "region,district,place,locality,neighborhood,street,address",
   });
 

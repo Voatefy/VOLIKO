@@ -8,6 +8,8 @@ import {
   useMap,
   LayersControl,
   LayerGroup,
+  Circle,
+  CircleMarker,
 } from "react-leaflet";
 
 
@@ -21,13 +23,17 @@ function MapNavigation({ location }) {
   const map = useMap();
 
   useEffect(() => {
-    if (!location) return;
+    if (location) {
+      const [longitude, latitude] = location;
 
-    const [longitude, latitude] = location;
-
-    map.flyTo([latitude, longitude], 16, {
-      duration: 1.5,
-    });
+      map.flyTo([latitude, longitude], 16, {
+        duration: 1.5,
+      });
+    } else {
+      map.flyTo([-18.8792, 47.5079], 6, {
+        duration: 1.5,
+      });
+    }
   }, [map, location]);
 
   return null;
@@ -79,6 +85,39 @@ function MapDrawControl({ onGeometryCreated }) {
   return null;
 }
 
+function RechercheMarker({ location }) {
+  if (!location) return null;
+
+  const [longitude, latitude] = location;
+  const position = [latitude, longitude];
+
+  return (
+    <>
+      <Circle
+        center={position}
+        radius={400}
+        pathOptions={{
+          color: "#f47721",
+          fillColor: "#f47721",
+          fillOpacity: 0.12,
+          weight: 2,
+        }}
+      />
+
+      <CircleMarker
+        center={position}
+        radius={9}
+        pathOptions={{
+          color: "#ffffff",
+          weight: 3,
+          fillColor: "#f47721",
+          fillOpacity: 1,
+        }}
+      />
+    </>
+  );
+}
+
 function ParcelleMap({
   parcelles,
   onGeometryCreated,
@@ -91,13 +130,14 @@ function ParcelleMap({
 
   return (
       <div className="parcelle-map">
-        <MapContainer
+      <MapContainer
         center={[-18.8792, 47.5079]}
         zoom={6}
         scrollWheelZoom
         style={{ height: "500px", width: "100%" }}
       >
       <MapNavigation location={locationRecherche} />
+      <RechercheMarker location={locationRecherche} />
 
 
         <LayersControl position="topleft">

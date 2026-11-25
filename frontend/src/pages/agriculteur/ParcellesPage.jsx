@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import ParcelleMap from "../../components/parcelles/ParcelleMap";
 import { getParcelles } from "../../services/parcelleService";
@@ -11,6 +11,7 @@ function ParcellesPage() {
     type: "FeatureCollection",
     features: [],
   });
+  const selectionEnCours = useRef(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -37,31 +38,46 @@ const [locationRecherche, setLocationRecherche] = useState(null);
 
 
 
-  async function handleRecherche(event) {
-    event.preventDefault();
 
-    if (!query.trim()) return;
-
-    setRechercheLoading(true);
-    setErreurRecherche("");
-    setResultats([]);
-
-    try {
-      const lieux = await rechercherLieu(query.trim());
-      setResultats(lieux);
-
-      if (lieux.length === 0) {
-        setErreurRecherche("Aucun lieu trouvé à Madagascar.");
-      }
-    } catch (err) {
-      setErreurRecherche(err.message);
-    } finally {
-      setRechercheLoading(false);
+  useEffect(() => {
+    if (selectionEnCours.current) {
+      selectionEnCours.current = false;
+      return;
     }
+
+    if (query.trim().length < 2) {
+      setResultats([]);
+      setErreurRecherche("");
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      setRechercheLoading(true);
+      setErreurRecherche("");
+
+      try {
+        const lieux = await rechercherLieu(query.trim());
+        setResultats(lieux);
+
+        if (lieux.length === 0) {
+          setErreurRecherche("Aucun lieu trouvé à Madagascar.");
+        }
+      } catch (err) {
+        setErreurRecherche(err.message);
+      } finally {
+        setRechercheLoading(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  function handleEffacer() {
+    setQuery("");
+    setResultats([]);
+    setErreurRecherche("");
+    setLocationRecherche(null);
   }
-
-
-
 
 
   return (
@@ -86,18 +102,32 @@ const [locationRecherche, setLocationRecherche] = useState(null);
         {!loading && !error && (
           <>
             <div className="parcelles-map-container">
-              <form onSubmit={handleRecherche} className="recherche-lieu">
+              
+
+              <div className="recherche-lieu">
+                <span className="recherche-icon"></span>
+
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Rechercher une région, commune, fokontany, village..."
+                  placeholder="Rechercher un lieu à Madagascar..."
                 />
 
-                <button type="submit" disabled={rechercheLoading}>
-                  {rechercheLoading ? "Recherche..." : "Rechercher"}
-                </button>
-              </form>
+                {query && (
+                  <button
+                    type="button"
+                    onClick={handleEffacer}
+                    className="recherche-effacer"
+                  >
+                    ×
+                  </button>
+                )}
+
+                {rechercheLoading && (
+                  <span className="recherche-loading">...</span>
+                )}
+              </div>
 
               {erreurRecherche && (
                 <p className="error-message">{erreurRecherche}</p>
@@ -114,6 +144,7 @@ const [locationRecherche, setLocationRecherche] = useState(null);
                           lieu.properties.full_address ||
                           lieu.properties.name;
 
+                        selectionEnCours.current = true;
                         setQuery(nomLieu);
                         setLocationRecherche(lieu.geometry.coordinates);
                         setResultats([]);
