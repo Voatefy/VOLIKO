@@ -36,6 +36,10 @@ const [locationRecherche, setLocationRecherche] = useState(null);
       try {
         const data = await getParcelles();
         setParcelles(data);
+
+        if (data.features.length > 0) {
+          setParcelleSelectionnee(data.features[0].id);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -117,14 +121,14 @@ const [locationRecherche, setLocationRecherche] = useState(null);
     setErreurCreation("");
 
     try {
-      await creerParcelle({
+      const nouvelleParcelle = await creerParcelle({
         nom_parcelle: nomParcelle.trim(),
         geometrie: geometrieEnCours,
       });
 
-      
       const data = await getParcelles();
       setParcelles(data);
+      setParcelleSelectionnee(nouvelleParcelle.id);
 
       coucheEnCours?.remove();
 
@@ -222,6 +226,7 @@ const [locationRecherche, setLocationRecherche] = useState(null);
                 parcelles={parcelles}
                 locationRecherche={locationRecherche}
                 onGeometryCreated={handleGeometryCreated}
+                selectedParcelleId={parcelleSelectionnee}
               />
 
 
@@ -273,7 +278,17 @@ const [locationRecherche, setLocationRecherche] = useState(null);
                 <p>Aucune parcelle enregistrée pour le moment.</p>
               ) : (
                 parcelles.features.map((feature) => (
-                  <article key={feature.properties.id}>
+                  <article
+                    key={feature.id}
+                    className={
+                      String(parcelleSelectionnee) === String(feature.id)
+                        ? "parcelle-item selected"
+                        : "parcelle-item"
+                    }
+                    onClick={() =>
+                      setParcelleSelectionnee(feature.id)
+                    }
+                  >
                     <h4>{feature.properties.nom_parcelle}</h4>
                     <p>
                       Superficie :{" "}

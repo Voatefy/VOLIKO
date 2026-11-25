@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo } from "react";
+import L from "leaflet";
 
 import {
   MapContainer,
@@ -19,7 +20,7 @@ import "@geoman-io/leaflet-geoman-free";
 const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 
-function MapNavigation({ location }) {
+function MapNavigation({ location, parcelles }) {
   const map = useMap();
 
   useEffect(() => {
@@ -29,12 +30,55 @@ function MapNavigation({ location }) {
       map.flyTo([latitude, longitude], 16, {
         duration: 1.5,
       });
-    } else {
-      map.flyTo([-18.8792, 47.5079], 6, {
-        duration: 1.5,
+      return;
+    }
+
+    if (parcelles?.features?.length > 0) {
+      const bounds = L.geoJSON(parcelles).getBounds();
+
+      if (bounds.isValid()) {
+        map.flyToBounds(bounds, {
+          padding: [50, 50],
+          duration: 1.5,
+          maxZoom: 15,
+        });
+        return;
+      }
+    }
+
+    map.flyTo([-18.8792, 47.5079], 6, {
+      duration: 1.5,
+    });
+  }, [map, location, parcelles]);
+
+  return null;
+}
+
+
+
+function ParcelleSelectionNavigation({ parcelles, selectedParcelleId }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!selectedParcelleId) return;
+
+    const feature = parcelles.features.find(
+      (item) => String(item.id) === String(selectedParcelleId)
+    );
+
+    if (!feature) return;
+
+    const layer = L.geoJSON(feature);
+    const bounds = layer.getBounds();
+
+    if (bounds.isValid()) {
+      map.flyToBounds(bounds, {
+        padding: [50, 50],
+        duration: 1.2,
+        maxZoom: 18,
       });
     }
-  }, [map, location]);
+  }, [map, parcelles, selectedParcelleId]);
 
   return null;
 }
@@ -119,12 +163,24 @@ function RechercheMarker({ location }) {
   );
 }
 
+function getParcelleStyle(feature, selectedParcelleId) {
+  const isSelected =
+    String(feature.id) === String(selectedParcelleId);
 
+  return {
+    color: isSelected ? "#16a34a" : "#456b4b",
+    weight: isSelected ? 4 : 2,
+    opacity: 1,
+    fillColor: isSelected ? "#22c55e" : "#8aaa8e",
+    fillOpacity: isSelected ? 0.25 : 0.12,
+  };
+}
 
 function ParcelleMap({
   parcelles,
   onGeometryCreated,
   locationRecherche,
+  selectedParcelleId,
 }) {
   const geojson = useMemo(
     () => parcelles || { type: "FeatureCollection", features: [] },
@@ -139,7 +195,16 @@ function ParcelleMap({
         scrollWheelZoom
         style={{ height: "500px", width: "100%" }}
       >
-      <MapNavigation location={locationRecherche} />
+
+        <MapNavigation
+          location={locationRecherche}
+          parcelles={parcelles}
+        />
+
+      <ParcelleSelectionNavigation
+        parcelles={parcelles}
+        selectedParcelleId={selectedParcelleId}
+      />
       <RechercheMarker location={locationRecherche} />
 
 
@@ -183,7 +248,14 @@ function ParcelleMap({
         </LayersControl>
 
 
-        <GeoJSON data={geojson} />
+        <GeoJSON
+          // key="all-parcelles"
+          key={geojson.features.map((feature) => feature.id).join("-") || "all-parcelles"}
+          data={geojson}
+          style={(feature) =>
+            getParcelleStyle(feature, selectedParcelleId)
+          }
+        />
 
         <MapDrawControl onGeometryCreated={onGeometryCreated} />
       </MapContainer>

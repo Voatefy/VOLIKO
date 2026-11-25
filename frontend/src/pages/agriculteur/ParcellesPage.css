@@ -406,3 +406,24 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+
+/* Sélection d'une parcelle */
+.parcelle-item {
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.parcelle-item:hover {
+  background: #edf5ed;
+  border-color: #a5c5a8;
+}
+
+.parcelle-item.selected {
+  background: #e8f5e9;
+  border: 1px solid #16a34a;
+}
+
+.parcelle-item.selected h4 {
+  color: #15803d;
+}
