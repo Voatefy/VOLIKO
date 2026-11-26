@@ -7,6 +7,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import HomePage from "./pages/home/HomePage";
 import RoleLanding from "./components/common/RoleLanding";
 import ParcellesPage from "./pages/agriculteur/ParcellesPage";
+import DashboardAgriculteur from "./pages/agriculteur/DashboardAgriculteur";
 import "./styles/dashboard.css";
 import "./App.css";
 
@@ -42,7 +43,7 @@ function App() {
       <Route element={<ProtectedRoute allowedRoles={["AGRICULTEUR"]} />}>
         <Route
           path="/agriculteur"
-          element={<RoleLanding title="Espace agriculteur" />}
+          element={<DashboardAgriculteur />}
         />
         <Route
           path="/agriculteur/parcelles"
