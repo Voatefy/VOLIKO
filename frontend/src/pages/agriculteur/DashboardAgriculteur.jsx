@@ -1,8 +1,33 @@
 import { useAuth } from "../../auth/AuthContext";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import { useEffect, useState } from "react";
+import { getParcelles } from "../../services/parcelleService";
 
 function DashboardAgriculteur() {
   const { user } = useAuth();
+
+  const [parcelles, setParcelles] = useState({
+    type: "FeatureCollection",
+    features: [],
+    });
+
+    const [chargement, setChargement] = useState(true);
+    const [erreur, setErreur] = useState("");
+
+    useEffect(() => {
+    async function chargerParcelles() {
+        try {
+        const data = await getParcelles();
+        setParcelles(data);
+        } catch (error) {
+        setErreur(error.message);
+        } finally {
+        setChargement(false);
+        }
+    }
+
+    chargerParcelles();
+    }, []);
 
   return (
     <DashboardLayout>
