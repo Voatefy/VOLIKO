@@ -2,8 +2,35 @@ import { useAuth } from "../../auth/AuthContext";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import { useEffect, useState } from "react";
 import { getParcelles } from "../../services/parcelleService";
-import { getActivitesPlanifiees } from "../../services/activiteService";
+import {
+  getActivitesPlanifiees,
+  getActivitesRealisees,
+} from "../../services/activiteService";
+
 import { getAlertesAgricoles } from "../../services/analyseService";
+
+function formaterTypeActivite(type) {
+  const types = {
+    SEMIS: "Semis",
+    IRRIGATION: "Irrigation",
+    FERTILISATION: "Fertilisation",
+    TRAITEMENT: "Traitement",
+    RECOLTE: "Récolte",
+    AUTRE: "Autre",
+  };
+
+  return types[type] || type;
+}
+
+function formaterDate(date) {
+  if (!date) return "Date non disponible";
+
+  return new Date(date).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 function DashboardAgriculteur() {
   const { user } = useAuth();
@@ -19,6 +46,8 @@ function DashboardAgriculteur() {
     const [erreurActivites, setErreurActivites] = useState("");
     const [alertes, setAlertes] = useState([]);
     const [erreurAlertes, setErreurAlertes] = useState("");
+    const [activitesRealisees, setActivitesRealisees] = useState([]);
+    const [erreurActivitesRealisees, setErreurActivitesRealisees] = useState("");
 
     useEffect(() => {
       async function chargerParcelles() {
@@ -48,6 +77,18 @@ function DashboardAgriculteur() {
       chargerActivites();
     }, []);
 
+    useEffect(() => {
+      async function chargerActivitesRealisees() {
+        try {
+          const data = await getActivitesRealisees();
+          setActivitesRealisees(data);
+        } catch (error) {
+          setErreurActivitesRealisees(error.message);
+        }
+      }
+
+      chargerActivitesRealisees();
+    }, []);
 
     useEffect(() => {
       async function chargerAlertes() {
@@ -63,6 +104,14 @@ function DashboardAgriculteur() {
     }, []);
 
     const nombreAlertes = alertes.length;
+
+    const activitesRecentes = [...activitesRealisees]
+      .sort(
+        (a, b) =>
+          new Date(b.date_activite) - new Date(a.date_activite)
+      )
+      .slice(0, 5);
+
     const nombreActivitesPlanifiees = activites.filter(
       (activite) => activite.statut === "PLANIFIEE"
     ).length;
@@ -95,6 +144,8 @@ function DashboardAgriculteur() {
       ) : erreur ? (
         <p>Erreur : {erreur}</p>
       ) : (
+      
+      <>
         <div className="dashboard-stats">
           <article className="dashboard-stat-card">
             <span>Parcelles actives</span>
@@ -127,8 +178,61 @@ function DashboardAgriculteur() {
               <small>Erreur : {erreurAlertes}</small>
             )}
           </article>
-
         </div>
+        <section className="dashboard-recent">
+          <h3>Activités agricoles récentes</h3>
+
+          {erreurActivitesRealisees ? (
+            <p>Erreur : {erreurActivitesRealisees}</p>
+          ) : activitesRecentes.length === 0 ? (
+            <p>Aucune activité agricole réalisée pour le moment.</p>
+          ) : (
+            <ul>
+              {activitesRecentes.map((activite) => {
+                const parcelleAssociee = parcelles.features.find(
+                  (parcelle) => parcelle.id === activite.parcelle
+                );
+
+                return (
+                  <li key={activite.id}>
+                    <strong>{formaterTypeActivite(activite.type_activite)}</strong>
+
+                    <p>Date : {formaterDate(activite.date_activite)}</p>
+
+                    <p>
+                      Parcelle : {parcelleAssociee
+                        ? parcelleAssociee.properties.nom_parcelle
+                        : "Parcelle inconnue"}
+                    </p>
+
+                    {activite.description && (
+                      <p>Description : {activite.description}</p>
+                    )}
+
+                    {activite.intrant && (
+                      <p>Intrant : {activite.intrant}</p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+          <section className="dashboard-recent">
+            <h3>Alertes agricoles récentes</h3>
+
+            {erreurAlertes ? (
+              <p>Erreur : {erreurAlertes}</p>
+            ) : alertes.length === 0 ? (
+              <p>Aucune alerte agricole pour le moment.</p>
+            ) : (
+              <p>{alertes.length} alerte(s) agricole(s) disponible(s).</p>
+            )}
+          </section>
+
+        </>
+
       )}
     </DashboardLayout>
   );
