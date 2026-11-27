@@ -186,6 +186,12 @@
   padding: 35px 38px;
 }
 
+.dashboard-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
 /* RESPONSIVE LAYOUT */
 
 @media (max-width: 900px) {
@@ -294,6 +300,7 @@
   .dashboard-content {
     padding: 22px 16px;
   }
+  
 }
 
 /* =========================================
