@@ -13,6 +13,7 @@ import {
   Ruler,
   CalendarDays,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 
 function formaterTypeActivite(type) {
@@ -61,6 +62,8 @@ function formaterNiveauAlerte(niveau) {
 
 function DashboardAgriculteur() {
   const { user } = useAuth();
+  const [activitesOuvertes, setActivitesOuvertes] = useState(true);
+  const [alertesOuvertes, setAlertesOuvertes] = useState(true);
 
   const [parcelles, setParcelles] = useState({
     type: "FeatureCollection",
@@ -218,83 +221,141 @@ function DashboardAgriculteur() {
         </div>
 
         <section className="dashboard-recent">
-          <h3>Activités agricoles récentes</h3>
+          <button
+            className="dashboard-recent-toggle"
+            onClick={() => setActivitesOuvertes(!activitesOuvertes)}
+            aria-expanded={activitesOuvertes}
+            type="button"
+          >
+            <h3>Activités agricoles récentes</h3>
+            <ChevronDown
+              className={activitesOuvertes ? "chevron-open" : ""}
+              size={22}
+            />
+          </button>
 
-          {erreurActivitesRealisees ? (
-            <p>Erreur : {erreurActivitesRealisees}</p>
-          ) : activitesRecentes.length === 0 ? (
-            <p>Aucune activité agricole réalisée pour le moment.</p>
-          ) : (
-            <ul>
-              {activitesRecentes.map((activite) => {
-                const parcelleAssociee = parcelles.features.find(
-                  (parcelle) => parcelle.id === activite.parcelle
-                );
+          {activitesOuvertes && (
+            <>
+              {erreurActivitesRealisees ? (
+                <p>Erreur : {erreurActivitesRealisees}</p>
+              ) : activitesRecentes.length === 0 ? (
+                <p>Aucune activité agricole réalisée pour le moment.</p>
+              ) : (
+                <ul>
+                  {activitesRecentes.map((activite) => {
+                    const parcelleAssociee = parcelles.features.find(
+                      (parcelle) => parcelle.id === activite.parcelle
+                    );
 
-                return (
-                  <li key={activite.id} className="dashboard-activite-item">
-                    <strong>{formaterTypeActivite(activite.type_activite)}</strong>
+                    return (
+                      <li key={activite.id} className="dashboard-activite-item">
+                        <div className="activite-card-header">
+                          <strong>
+                            {formaterTypeActivite(activite.type_activite)}
+                          </strong>
 
-                    <p>Date : {formaterDate(activite.date_activite)}</p>
+                          <span className="activite-date">
+                            <CalendarDays size={15} />
+                            {formaterDate(activite.date_activite)}
+                          </span>
+                        </div>
 
-                    <p>
-                      Parcelle : {parcelleAssociee
-                        ? parcelleAssociee.properties.nom_parcelle
-                        : "Parcelle inconnue"}
-                    </p>
+                        <div className="activite-card-details">
+                          <div className="activite-detail">
+                            <span className="activite-detail-label">Parcelle</span>
+                            <strong className="activite-parcelle">
+                              {parcelleAssociee
+                                ? parcelleAssociee.properties.nom_parcelle
+                                : "Parcelle inconnue"}
+                            </strong>
+                          </div>
 
-                    {activite.description && (
-                      <p>Description : {activite.description}</p>
-                    )}
+                          {activite.description && (
+                            <div className="activite-detail">
+                              <span className="activite-detail-label">Description</span>
+                              <p>{activite.description}</p>
+                            </div>
+                          )}
 
-                    {activite.intrant && (
-                      <p>Intrant : {activite.intrant}</p>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                          {activite.intrant && (
+                            <div className="activite-detail">
+                              <span className="activite-detail-label">Intrant utilisé</span>
+                              <p>{activite.intrant}</p>
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
           )}
         </section>
 
           <section className="dashboard-recent">
-            <h3>Alertes agricoles récentes</h3>
+            <button
+              className="dashboard-recent-toggle"
+              onClick={() => setAlertesOuvertes(!alertesOuvertes)}
+              aria-expanded={alertesOuvertes}
+              type="button"
+            >
+              <h3>Alertes agricoles récentes</h3>
+              <ChevronDown
+                className={alertesOuvertes ? "chevron-open" : ""}
+                size={22}
+              />
+            </button>
 
-            {erreurAlertes ? (
-              <p>Erreur : {erreurAlertes}</p>
-            ) : alertesRecentes.length === 0 ? (
-              <p>Aucune alerte agricole pour le moment.</p>
-            ) : (
-              <ul>
-                {alertesRecentes.map((alerte) => {
-                  const parcelleAssociee = parcelles.features.find(
-                    (parcelle) => parcelle.id === alerte.parcelle
-                  );
+            {alertesOuvertes && (
+              <>
+                {erreurAlertes ? (
+                  <p>Erreur : {erreurAlertes}</p>
+                ) : alertesRecentes.length === 0 ? (
+                  <p>Aucune alerte agricole pour le moment.</p>
+                ) : (
+                  <ul>
+                    {alertesRecentes.map((alerte) => {
+                      const parcelleAssociee = parcelles.features.find(
+                        (parcelle) => parcelle.id === alerte.parcelle
+                      );
 
-                  return (
-                    <li key={alerte.id} className="dashboard-alert-item">
-                      <strong>{formaterTypeAlerte(alerte.type_alerte)}</strong>
+                      return (
+                        <li key={alerte.id} className="dashboard-alert-item">
+                          <div className="alerte-card-header">
+                            <strong>{formaterTypeAlerte(alerte.type_alerte)}</strong>
 
-                      <p>
-                        Gravité :{" "}
-                        <span className={`alerte-niveau alerte-niveau-${alerte.niveau_alerte?.toLowerCase()}`}>
-                          {formaterNiveauAlerte(alerte.niveau_alerte)}
-                        </span>
-                      </p>
+                            <span className={`alerte-niveau alerte-niveau-${alerte.niveau_alerte?.toLowerCase()}`}>
+                              {formaterNiveauAlerte(alerte.niveau_alerte)}
+                            </span>
+                          </div>
 
-                      <p>{alerte.contenu_alerte}</p>
+                          <div className="alerte-card-details">
+                            <div className="alerte-detail">
+                              <span className="alerte-detail-label">Description de l'alerte</span>
+                              <p>{alerte.contenu_alerte}</p>
+                            </div>
 
-                      <p>Date : {formaterDate(alerte.date_alerte)}</p>
+                            <div className="alerte-detail">
+                              <span className="alerte-detail-label">Parcelle concernée</span>
+                              <strong className="alerte-parcelle">
+                                {parcelleAssociee
+                                  ? parcelleAssociee.properties.nom_parcelle
+                                  : "Parcelle inconnue"}
+                              </strong>
+                            </div>
 
-                      <p>
-                        Parcelle : {parcelleAssociee
-                          ? parcelleAssociee.properties.nom_parcelle
-                          : "Parcelle inconnue"}
-                      </p>
-                    </li>
-                  );
-                })}
-              </ul>
+                            <div className="alerte-date">
+                              <CalendarDays size={15} />
+                              {formaterDate(alerte.date_alerte)}
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </>
             )}
           </section>
 
