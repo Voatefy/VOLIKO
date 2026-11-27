@@ -214,11 +214,12 @@ function DashboardAgriculteur() {
       </section>
 
       {chargement ? (
-        <p>Chargement des indicateurs...</p>
-      ) : erreur ? (
-        <p>Erreur : {erreur}</p>
-      ) : (
-        <>
+          <p>Chargement des indicateurs...</p>
+        ) : (
+          <>
+            {erreur && (
+              <p>Impossible de charger les parcelles : {erreur}</p>
+            )}
           <div className="dashboard-stats">
             <article className="dashboard-stat-card">
               <div className="dashboard-stat-icon" aria-hidden="true">
