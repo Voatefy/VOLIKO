@@ -476,7 +476,7 @@
 
 .dashboard-stat-card--alert strong::after {
   content: "";
-  display: inline-block;
+  display: none;
   width: 10px;
   height: 10px;
   margin-left: 10px;
@@ -855,7 +855,7 @@
 
 .dashboard-recent ul {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
   gap: 14px;
   margin: 0;
 }
@@ -882,12 +882,253 @@
   margin: 0;
 }
 
-/* Respect de « réduire les animations » */
+/* =========================================
+   ANIMATIONS DU TABLEAU DE BORD
+========================================= */
 
-@media (prefers-reduced-motion: reduce) {
-  .dashboard-layout *,
-  .dashboard-layout *::before,
-  .dashboard-layout *::after {
-    transition-duration: 0.01ms !important;
-  }
+@keyframes v-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes v-fade-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes v-slide-in-left {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes v-pop {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes v-float {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -6px; }
+}
+
+@keyframes v-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(240, 120, 50, 0.25); }
+  50%      { box-shadow: 0 0 0 8px rgba(240, 120, 50, 0); }
+}
+
+@keyframes v-open {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* "backwards" : l'animation joue avant/pendant le délai puis rend la main,
+   ce qui n'écrase pas les effets de survol (transform) */
+
+/* Sidebar */
+
+.sidebar-brand,
+.dashboard-brand {
+  animation: v-fade-down 0.5s ease backwards;
+}
+
+.sidebar-nav .sidebar-link {
+  animation: v-slide-in-left 0.45s ease backwards;
+}
+
+.sidebar-nav .sidebar-link:nth-child(1) { animation-delay: 0.10s; }
+.sidebar-nav .sidebar-link:nth-child(2) { animation-delay: 0.16s; }
+.sidebar-nav .sidebar-link:nth-child(3) { animation-delay: 0.22s; }
+.sidebar-nav .sidebar-link:nth-child(4) { animation-delay: 0.28s; }
+.sidebar-nav .sidebar-link:nth-child(5) { animation-delay: 0.34s; }
+.sidebar-nav .sidebar-link:nth-child(6) { animation-delay: 0.40s; }
+.sidebar-nav .sidebar-link:nth-child(7) { animation-delay: 0.46s; }
+
+.sidebar-bottom {
+  animation: v-fade-up 0.5s ease 0.5s backwards;
+}
+
+.sidebar-link {
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-link:not(.active):hover {
+  transform: translateX(4px);
+}
+
+/* En-tête et accueil */
+
+.dashboard-header {
+  animation: v-fade-down 0.5s ease backwards;
+}
+
+.dashboard-content > h2,
+.dashboard-content > p,
+.dashboard-welcome-eyebrow {
+  animation: v-fade-up 0.55s ease 0.1s backwards;
+}
+
+/* Cartes de statistiques */
+
+.dashboard-stat-card {
+  animation: v-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.dashboard-stats > .dashboard-stat-card:nth-child(1) { animation-delay: 0.20s; }
+.dashboard-stats > .dashboard-stat-card:nth-child(2) { animation-delay: 0.30s; }
+.dashboard-stats > .dashboard-stat-card:nth-child(3) { animation-delay: 0.40s; }
+.dashboard-stats > .dashboard-stat-card:nth-child(4) { animation-delay: 0.50s; }
+
+.dashboard-stat-card strong {
+  animation: v-pop 0.5s ease 0.5s backwards;
+}
+
+/* Icônes : flottement léger + réaction au survol
+   (propriétés translate / scale / rotate : elles ne gênent pas le
+   transform: translateY(-50%) qui centre l'icône) */
+
+.dashboard-stat-icon {
+  animation: v-float 6s ease-in-out infinite;
+  transition: scale 0.35s ease, rotate 0.35s ease, opacity 0.35s ease;
+}
+
+.dashboard-stats > .dashboard-stat-card:nth-child(2) .dashboard-stat-icon { animation-delay: -1.5s; }
+.dashboard-stats > .dashboard-stat-card:nth-child(3) .dashboard-stat-icon { animation-delay: -3s; }
+.dashboard-stats > .dashboard-stat-card:nth-child(4) .dashboard-stat-icon { animation-delay: -4.5s; }
+
+.dashboard-stat-card:hover .dashboard-stat-icon {
+  scale: 1.1;
+  rotate: -5deg;
+  opacity: 0.85;
+}
+
+.dashboard-stat-card--alert strong::after {
+  animation: v-pulse-dot 2s ease-in-out infinite;
+}
+
+/* Blocs d'activités et d'alertes */
+
+.dashboard-recent {
+  animation: v-fade-up 0.6s ease backwards;
+}
+
+.dashboard-recent-grid > .dashboard-recent:nth-child(1),
+.dashboard-content > .dashboard-recent:nth-of-type(1) { animation-delay: 0.60s; }
+
+.dashboard-recent-grid > .dashboard-recent:nth-child(2),
+.dashboard-content > .dashboard-recent:nth-of-type(2) { animation-delay: 0.72s; }
+
+/* Ouverture d'un bloc repliable : le contenu glisse vers le bas */
+
+.dashboard-recent-toggle + * {
+  animation: v-open 0.35s ease backwards;
+}
+
+/* Cartes d'activités et d'alertes : apparition en cascade */
+
+/* .dashboard-activite-item,
+.dashboard-alert-item {
+  animation: v-fade-up 0.45s ease backwards;
+} */
+
+.dashboard-recent ul > li:nth-child(1) { animation-delay: 0.05s; }
+.dashboard-recent ul > li:nth-child(2) { animation-delay: 0.12s; }
+.dashboard-recent ul > li:nth-child(3) { animation-delay: 0.19s; }
+.dashboard-recent ul > li:nth-child(4) { animation-delay: 0.26s; }
+.dashboard-recent ul > li:nth-child(5) { animation-delay: 0.33s; }
+.dashboard-recent ul > li:nth-child(n+6) { animation-delay: 0.4s; }
+
+/* Badges de gravité */
+
+.alerte-niveau {
+  animation: v-pop 0.4s ease 0.2s backwards;
+}
+
+/* =========================================
+   OUVERTURE / FERMETURE PREMIUM DES LISTES
+   (activités et alertes récentes)
+========================================= */
+
+/* Le wrapper reste toujours dans le DOM : sa hauteur passe de 0 à auto
+   grâce à grid-template-rows (0fr -> 1fr), sans connaître la hauteur réelle */
+
+.dashboard-recent-toggle + .recent-collapse {
+  margin-top: 0;
+  animation: none;
+}
+
+.recent-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease,
+    visibility 0s linear 0.55s; /* masqué seulement après la fin de la fermeture */
+}
+
+.recent-collapse.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease 0.05s,
+    visibility 0s;
+}
+
+.recent-collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 18px;
+}
+
+/* Les cartes se replient en glissant vers le haut et rétrécissent légèrement,
+   puis ressortent en cascade à l'ouverture */
+
+.recent-collapse .dashboard-activite-item,
+.recent-collapse .dashboard-alert-item {
+  opacity: 0;
+  transform: translateY(-14px) scale(0.97);
+  transition: opacity 0.3s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.recent-collapse.is-open .dashboard-activite-item,
+.recent-collapse.is-open .dashboard-alert-item {
+  opacity: 1;
+  transform: none;
+}
+
+.recent-collapse.is-open ul > li:nth-child(1) { transition-delay: 0.10s; }
+.recent-collapse.is-open ul > li:nth-child(2) { transition-delay: 0.18s; }
+.recent-collapse.is-open ul > li:nth-child(3) { transition-delay: 0.26s; }
+.recent-collapse.is-open ul > li:nth-child(4) { transition-delay: 0.34s; }
+.recent-collapse.is-open ul > li:nth-child(n+5) { transition-delay: 0.40s; }
+
+/* Chevron : rotation élastique */
+
+.dashboard-recent-toggle svg {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Le titre réagit au survol */
+
+.dashboard-recent-toggle h3 {
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.dashboard-recent-toggle:hover h3 {
+  color: var(--v-green-600);
+  transform: translateX(3px);
+}
+
+/* Le bloc ouvert se met en valeur (bordure et ombre plus marquées) */
+
+.dashboard-recent {
+  transition: box-shadow 0.45s ease, border-color 0.45s ease;
+}
+
+.dashboard-recent:has(.recent-collapse.is-open) {
+  border-color: #CFE0D3;
+  box-shadow: 0 14px 34px rgba(16, 41, 29, 0.10);
 }
