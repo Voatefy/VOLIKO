@@ -1,5 +1,7 @@
+
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
+import { Menu } from "lucide-react";
 
 const pageTitles = {
   "/agriculteur": "Tableau de bord",
@@ -8,7 +10,7 @@ const pageTitles = {
   "/administration": "Tableau de bord",
 };
 
-function Header() {
+function Header({ ouvrirMenu }) {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -21,6 +23,14 @@ function Header() {
 
   return (
     <header className="dashboard-header">
+      <button
+        className="mobile-menu-button"
+        onClick={ouvrirMenu}
+        aria-label="Ouvrir le menu"
+      >
+        <Menu size={25} />
+      </button>
+
       <div>
         <span className="header-eyebrow">VOLIKO / ESPACE DE TRAVAIL</span>
         <h1>{title}</h1>

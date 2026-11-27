@@ -1,3 +1,4 @@
+
 /* =========================================
    VOLIKO — DASHBOARD LAYOUT
 ========================================= */
@@ -12,7 +13,7 @@
 .dashboard-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
-  z-index: 100;
+  z-index: 2000;
   width: 260px;
   padding: 28px 18px 20px;
   display: flex;
@@ -62,11 +63,11 @@
   color: #C5D1C8;
   font-size: 13px;
   font-weight: 500;
-  transition: background .2s ease, color .2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .sidebar-link:hover {
-  background: rgba(255, 255, 255, .07);
+  background: rgba(255, 255, 255, 0.07);
   color: #FFFFFF;
 }
 
@@ -79,7 +80,7 @@
 .sidebar-bottom {
   margin-top: auto;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, .12);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .sidebar-user {
@@ -127,17 +128,17 @@
   width: 100%;
   margin-top: 12px;
   padding: 11px 12px;
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 6px;
   background: transparent;
   color: #D5DED7;
   font-size: 12px;
   text-align: left;
-  transition: background .2s ease;
+  transition: background 0.2s ease;
 }
 
 .sidebar-logout:hover {
-  background: rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* MAIN CONTENT */
@@ -169,7 +170,7 @@
   color: #193D2B;
   font-size: 23px;
   font-weight: 700;
-  letter-spacing: -.6px;
+  letter-spacing: -0.6px;
 }
 
 .header-profile {
@@ -185,7 +186,7 @@
   padding: 35px 38px;
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE LAYOUT */
 
 @media (max-width: 900px) {
   .dashboard-sidebar {
@@ -201,33 +202,62 @@
   }
 }
 
+.mobile-menu-button {
+  display: none;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
 @media (max-width: 650px) {
   .dashboard-sidebar {
-    position: relative;
-    width: 100%;
-    min-height: auto;
-    padding: 16px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 2000;
+    width: 280px;
+    min-height: 100vh;
+    padding: 24px 18px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .dashboard-sidebar.sidebar-open {
+    transform: translateX(0);
   }
 
   .dashboard-brand {
-    padding-bottom: 18px;
+    padding-bottom: 30px;
   }
 
-  .sidebar-section-label,
-  .sidebar-bottom {
-    display: none;
+  .sidebar-section-label {
+    display: block;
   }
 
   .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 5px;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .sidebar-link {
     flex-shrink: 0;
-    min-height: 38px;
-    font-size: 11px;
+    min-height: 45px;
+    font-size: 13px;
+  }
+
+  .sidebar-bottom {
+    display: block;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1999;
+    background: rgba(0, 0, 0, 0.45);
   }
 
   .dashboard-main {
@@ -237,6 +267,20 @@
   .dashboard-header {
     min-height: 80px;
     padding: 15px 18px;
+    gap: 12px;
+  }
+
+  .mobile-menu-button {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border: 1px solid #DCE4D9;
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: #193D2B;
+    cursor: pointer;
   }
 
   .dashboard-header h1 {
@@ -252,8 +296,11 @@
   }
 }
 
+/* =========================================
+   TABLEAU DE BORD AGRICULTEUR
+========================================= */
 
-/* TABLEAU DE BORD AGRICULTEUR */
+/* STATISTIQUES */
 
 .dashboard-stats {
   display: grid;
@@ -263,27 +310,94 @@
 }
 
 .dashboard-stat-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 25px;
-  background: #FFFFFF;
-  border: 1px solid #E5E9E3;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px rgba(16, 41, 29, 0.04);
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 150px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(110, 190, 140, 0.35) 0%, transparent 55%),
+    radial-gradient(circle at 0% 100%, rgba(8, 28, 18, 0.55) 0%, transparent 60%),
+    linear-gradient(135deg, #2A7A4B 0%, #1F5A38 45%, #123222 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  box-shadow:
+    0 12px 28px rgba(16, 41, 29, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+/* Reflet lumineux qui apparaît au survol */
+.dashboard-stat-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.10) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dashboard-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 18px 36px rgba(16, 41, 29, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.dashboard-stat-card:hover::after {
+  transform: translateX(100%);
+}
+
+/* Icône avec son propre dégradé (clair en haut, plus foncé en bas) */
+.dashboard-stat-icon {
+  position: absolute;
+  top: 50%;
+  right: -22px;
+  transform: translateY(-50%);
+  width: 105px;
+  height: 105px;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dashboard-stat-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: #6FBF8B;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-stat-card span,
+.dashboard-stat-card strong {
+  position: relative;
+  z-index: 1;
+}
+
+/* Libellé : clair et discret */
 .dashboard-stat-card span {
-  color: #68766C;
+  color: #B9CFC0;
   font-size: 14px;
   font-weight: 500;
 }
 
+/* Chiffre : gros, blanc, très gras */
 .dashboard-stat-card strong {
-  color: #193D2B;
-  font-size: 28px;
-  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
 }
+
+/* RESPONSIVE STATISTIQUES */
 
 @media (max-width: 650px) {
   .dashboard-stats {
@@ -292,7 +406,8 @@
   }
 }
 
-/* ACTIVITÉS AGRICOLES RÉCENTES */
+/* ACTIVITÉS ET ALERTES RÉCENTES */
+
 .dashboard-recent {
   margin-top: 30px;
   padding: 25px;
@@ -313,4 +428,98 @@
   margin: 0;
   color: #68766C;
   font-size: 14px;
+}
+
+/* CARTES DES ACTIVITÉS AGRICOLES */
+
+.dashboard-activite-item {
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #E5E9E3;
+  border-left: 4px solid #43865B;
+  border-radius: 8px;
+  background: #FAFCF9;
+}
+
+.dashboard-activite-item strong {
+  display: block;
+  margin-bottom: 10px;
+  color: #193D2B;
+  font-size: 15px;
+}
+
+.dashboard-activite-item p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+/* BADGES DE GRAVITÉ DES ALERTES */
+
+.alerte-niveau {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.alerte-niveau-faible {
+  background: #E5F5E9;
+  color: #237A3B;
+}
+
+.alerte-niveau-moyen {
+  background: #FFF4D6;
+  color: #946200;
+}
+
+.alerte-niveau-eleve {
+  background: #FCE8D5;
+  color: #B45309;
+}
+
+.alerte-niveau-critique {
+  background: #FDE2E2;
+  color: #B42318;
+}
+
+/* CARTES DES ALERTES AGRICOLES */
+
+.dashboard-alert-item {
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #E5E9E3;
+  border-left: 4px solid #D6A23A;
+  border-radius: 8px;
+  background: #FAFCF9;
+}
+
+.dashboard-alert-item strong {
+  display: block;
+  margin-bottom: 10px;
+  color: #193D2B;
+  font-size: 15px;
+}
+
+.dashboard-alert-item p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+/* COULEUR DE LA BORDURE SELON LA GRAVITÉ */
+
+.dashboard-alert-item:has(.alerte-niveau-faible) {
+  border-left-color: #2E8B57;
+}
+
+.dashboard-alert-item:has(.alerte-niveau-moyen) {
+  border-left-color: #D6A23A;
+}
+
+.dashboard-alert-item:has(.alerte-niveau-eleve) {
+  border-left-color: #E87924;
+}
+
+.dashboard-alert-item:has(.alerte-niveau-critique) {
+  border-left-color: #C62828;
 }

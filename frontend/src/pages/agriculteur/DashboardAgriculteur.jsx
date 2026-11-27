@@ -8,6 +8,12 @@ import {
 } from "../../services/activiteService";
 
 import { getAlertesAgricoles } from "../../services/analyseService";
+import {
+  Map,
+  Ruler,
+  CalendarDays,
+  AlertTriangle,
+} from "lucide-react";
 
 function formaterTypeActivite(type) {
   const types = {
@@ -30,6 +36,27 @@ function formaterDate(date) {
     month: "long",
     year: "numeric",
   });
+}
+
+function formaterTypeAlerte(type) {
+  const types = {
+    VEGETATION: "Végétation",
+    METEO: "Météo",
+    AUTRE: "Autre",
+  };
+
+  return types[type] || type;
+}
+
+function formaterNiveauAlerte(niveau) {
+  const niveaux = {
+    FAIBLE: "Faible",
+    MOYEN: "Moyen",
+    ELEVE: "Élevé",
+    CRITIQUE: "Critique",
+  };
+
+  return niveaux[niveau] || niveau;
 }
 
 function DashboardAgriculteur() {
@@ -104,6 +131,12 @@ function DashboardAgriculteur() {
     }, []);
 
     const nombreAlertes = alertes.length;
+    const alertesRecentes = [...alertes]
+      .sort(
+        (a, b) =>
+          new Date(b.date_alerte) - new Date(a.date_alerte)
+      )
+      .slice(0, 5);
 
     const activitesRecentes = [...activitesRealisees]
       .sort(
@@ -148,37 +181,42 @@ function DashboardAgriculteur() {
       <>
         <div className="dashboard-stats">
           <article className="dashboard-stat-card">
+            <div className="dashboard-stat-icon">
+              <Map size={24} />
+            </div>
             <span>Parcelles actives</span>
             <strong>{nombreParcelles}</strong>
           </article>
 
           <article className="dashboard-stat-card">
+            <div className="dashboard-stat-icon">
+              <Ruler size={24} />
+            </div>
             <span>Superficie totale</span>
-            <strong>
-              {(superficieTotale / 10000).toFixed(2)} ha
-            </strong>
+            <strong>{(superficieTotale / 10000).toFixed(2)} ha</strong>
           </article>
 
           <article className="dashboard-stat-card">
+            <div className="dashboard-stat-icon">
+              <CalendarDays size={24} />
+            </div>
             <span>Activités planifiées</span>
             <strong>
               {erreurActivites ? "—" : nombreActivitesPlanifiees}
             </strong>
-            {erreurActivites && (
-              <small>Erreur : {erreurActivites}</small>
-            )}
+            {erreurActivites && <small>Erreur : {erreurActivites}</small>}
           </article>
 
           <article className="dashboard-stat-card">
+            <div className="dashboard-stat-icon">
+              <AlertTriangle size={24} />
+            </div>
             <span>Alertes agricoles</span>
-            <strong>
-              {erreurAlertes ? "—" : nombreAlertes}
-            </strong>
-            {erreurAlertes && (
-              <small>Erreur : {erreurAlertes}</small>
-            )}
+            <strong>{erreurAlertes ? "—" : nombreAlertes}</strong>
+            {erreurAlertes && <small>Erreur : {erreurAlertes}</small>}
           </article>
         </div>
+
         <section className="dashboard-recent">
           <h3>Activités agricoles récentes</h3>
 
@@ -194,7 +232,7 @@ function DashboardAgriculteur() {
                 );
 
                 return (
-                  <li key={activite.id}>
+                  <li key={activite.id} className="dashboard-activite-item">
                     <strong>{formaterTypeActivite(activite.type_activite)}</strong>
 
                     <p>Date : {formaterDate(activite.date_activite)}</p>
@@ -224,10 +262,39 @@ function DashboardAgriculteur() {
 
             {erreurAlertes ? (
               <p>Erreur : {erreurAlertes}</p>
-            ) : alertes.length === 0 ? (
+            ) : alertesRecentes.length === 0 ? (
               <p>Aucune alerte agricole pour le moment.</p>
             ) : (
-              <p>{alertes.length} alerte(s) agricole(s) disponible(s).</p>
+              <ul>
+                {alertesRecentes.map((alerte) => {
+                  const parcelleAssociee = parcelles.features.find(
+                    (parcelle) => parcelle.id === alerte.parcelle
+                  );
+
+                  return (
+                    <li key={alerte.id} className="dashboard-alert-item">
+                      <strong>{formaterTypeAlerte(alerte.type_alerte)}</strong>
+
+                      <p>
+                        Gravité :{" "}
+                        <span className={`alerte-niveau alerte-niveau-${alerte.niveau_alerte?.toLowerCase()}`}>
+                          {formaterNiveauAlerte(alerte.niveau_alerte)}
+                        </span>
+                      </p>
+
+                      <p>{alerte.contenu_alerte}</p>
+
+                      <p>Date : {formaterDate(alerte.date_alerte)}</p>
+
+                      <p>
+                        Parcelle : {parcelleAssociee
+                          ? parcelleAssociee.properties.nom_parcelle
+                          : "Parcelle inconnue"}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </section>
 

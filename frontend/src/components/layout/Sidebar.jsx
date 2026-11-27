@@ -33,50 +33,67 @@ const menus = {
   ],
 };
 
-function Sidebar() {
+
+function Sidebar({ menuOuvert, fermerMenu }) {
   const { user, logout } = useAuth();
   const items = menus[user?.role] || [];
 
   return (
-    <aside className="dashboard-sidebar">
-      <NavLink to="/" className="dashboard-brand">
-        <img src={volikoLeaf} alt="" />
-        <span>Voliko</span>
-      </NavLink>
+    <>
+      {menuOuvert && (
+        <div
+          className="sidebar-overlay"
+          onClick={fermerMenu}
+        />
+      )}
 
-      <div className="sidebar-section-label">ESPACE DE TRAVAIL</div>
+      <aside
+        className={`dashboard-sidebar${menuOuvert ? " sidebar-open" : ""}`}
+      >
+        <NavLink
+          to="/"
+          className="dashboard-brand"
+          onClick={fermerMenu}
+        >
+          <img src={volikoLeaf} alt="" />
+          <span>Voliko</span>
+        </NavLink>
 
-      <nav className="sidebar-nav">
-        {items.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            end={item.path === `/${user?.role === "ADMINISTRATEUR" ? "administration" : user?.role === "CANDIDAT_AGRONOME" ? "candidat-agronome" : user?.role?.toLowerCase()}`}
-            className={({ isActive }) =>
-              `sidebar-link${isActive ? " active" : ""}`
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
+        <div className="sidebar-section-label">ESPACE DE TRAVAIL</div>
 
-      <div className="sidebar-bottom">
-        <div className="sidebar-user">
-          <div className="sidebar-avatar">
-            {(user?.first_name || user?.username || "U").charAt(0).toUpperCase()}
+        <nav className="sidebar-nav">
+          {items.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === `/${user?.role === "ADMINISTRATEUR" ? "administration" : user?.role === "CANDIDAT_AGRONOME" ? "candidat-agronome" : user?.role?.toLowerCase()}`}
+              onClick={fermerMenu}
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom">
+          <div className="sidebar-user">
+            <div className="sidebar-avatar">
+              {(user?.first_name || user?.username || "U").charAt(0).toUpperCase()}
+            </div>
+            <div className="sidebar-user-info">
+              <strong>{user?.first_name || user?.username}</strong>
+              <span>{user?.role?.replaceAll("_", " ")}</span>
+            </div>
           </div>
-          <div className="sidebar-user-info">
-            <strong>{user?.first_name || user?.username}</strong>
-            <span>{user?.role?.replaceAll("_", " ")}</span>
-          </div>
+
+          <button className="sidebar-logout" onClick={logout}>
+            Se déconnecter
+          </button>
         </div>
-
-        <button className="sidebar-logout" onClick={logout}>
-          Se déconnecter
-        </button>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
