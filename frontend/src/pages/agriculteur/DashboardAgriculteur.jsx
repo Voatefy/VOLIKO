@@ -220,13 +220,14 @@ function DashboardAgriculteur() {
             {erreur && (
               <p>Impossible de charger les parcelles : {erreur}</p>
             )}
+
           <div className="dashboard-stats">
             <article className="dashboard-stat-card">
               <div className="dashboard-stat-icon" aria-hidden="true">
                 <Map size={24} />
               </div>
               <span>Parcelles actives</span>
-              <strong>{nombreParcelles}</strong>
+              <strong>{erreur ? "—" : nombreParcelles}</strong>
             </article>
 
             <article className="dashboard-stat-card">
@@ -234,7 +235,9 @@ function DashboardAgriculteur() {
                 <Ruler size={24} />
               </div>
               <span>Superficie totale</span>
-              <strong>{(superficieTotale / 10000).toFixed(2)} ha</strong>
+              <strong>
+                {erreur ? "—" : `${(superficieTotale / 10000).toFixed(2)} ha`}
+              </strong>
             </article>
 
             <article className="dashboard-stat-card">
